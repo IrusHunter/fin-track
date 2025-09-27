@@ -2,6 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using FinTrack.Models;
+using FinTrack.Repositories;
+using FinTrack.Services;
+using FinTrack.CustomConsole;
 
 Env.Load();
 
@@ -21,4 +24,10 @@ var provider = services.BuildServiceProvider();
 using var db = provider.GetRequiredService<ApplicationDbContext>();
 db.Database.EnsureCreated();
 
-Console.WriteLine("Hello, World!");
+var categoryRepository = new CategoryRepository(db);
+var categoryService = new CategoryService(categoryRepository);
+var cc = new CustomConsole(categoryService);
+
+await cc.Run();
+
+// Console.WriteLine("Hello, World!");
