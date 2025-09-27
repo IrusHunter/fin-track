@@ -6,6 +6,8 @@ namespace FinTrack.Models
 {
     public class Transaction
     {
+        public const int MaxNameLength = 100;
+
         [Key]
         public int Id { get; set; }
 
@@ -22,8 +24,6 @@ namespace FinTrack.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-
-        public DateTime? DeletedAt { get; set; }
 
         [ForeignKey(nameof(Category))]
         public int CategoryId { get; set; }

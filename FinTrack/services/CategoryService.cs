@@ -58,10 +58,10 @@ namespace FinTrack.Services
 
         private async Task Validate(Category category)
         {
-            if (category.Name.Length > 100) { throw new Exception($"Category name ({category.Name.Length}) is longer than 100"); }
+            if (category.Name.Length > Category.MaxNameLength) { throw new Exception($"Category name ({category.Name.Length}) is longer than {Category.MaxNameLength}"); }
 
-            if (category.TaxAmount >= 100) { throw new Exception($"Category tax amount ({category.TaxAmount}) bigger than 99.99%"); }
-            if (category.TaxAmount < 0) { throw new Exception($"Category tax amount ({category.TaxAmount}) lower than 0%"); }
+            if (category.TaxAmount > Category.MaxTaxAmount) { throw new Exception($"Category tax amount ({category.TaxAmount}) bigger than {Category.MaxTaxAmount}%"); }
+            if (category.TaxAmount < Category.MinTaxAmount) { throw new Exception($"Category tax amount ({category.TaxAmount}) lower than {Category.MinTaxAmount}%"); }
 
             var existedCategory = await _categoryRepository.FindByName(category.Name);
             if (existedCategory != null && existedCategory.Id != category.Id)

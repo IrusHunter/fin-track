@@ -47,7 +47,9 @@ namespace FinTrack.Repositories
 
         public async Task<Category[]> FindAll()
         {
-            return await _db.Categories.ToArrayAsync();
+            return await _db.Categories
+                .Where(с => с.DeletedAt == null)
+                .ToArrayAsync();
         }
 
         public async Task Update(Category category)
