@@ -4,17 +4,33 @@ using FinTrack.Services;
 
 namespace FinTrack.CustomConsole
 {
+    /// <summary>
+    /// Interface for a custom console-based application for FinTrack.
+    /// </summary>
     public interface ICustomConsole
     {
+        /// <summary>
+        /// Starts and runs the console application.
+        /// </summary>
         public Task Run();
     }
 
+    /// <summary>
+    /// Represents the main console application for FinTrack.
+    /// Provides interactive menus for managing categories, transactions, and generating reports.
+    /// </summary>
     public class CustomConsole : ICustomConsole
     {
         private readonly ICategoryService _categoryService;
         private readonly ITransactionService _transactionService;
         private readonly IReportService _reportService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CustomConsole"/> class.
+        /// </summary>
+        /// <param name="categoryService">Service to manage categories.</param>
+        /// <param name="transactionService">Service to manage transactions.</param>
+        /// <param name="reportService">Service to generate financial reports.</param>
         public CustomConsole(
             ICategoryService categoryService,
             ITransactionService transactionService,
@@ -26,6 +42,10 @@ namespace FinTrack.CustomConsole
             _reportService = reportService;
         }
 
+        /// <summary>
+        /// Runs the main menu loop of the FinTrack console application.
+        /// Users can select between categories, transactions, reports, or exit the application.
+        /// </summary>
         public async Task Run()
         {
             var exit = false;
@@ -95,7 +115,9 @@ namespace FinTrack.CustomConsole
             Console.WriteLine("Thank you for using FinTrack. Wishing you financial success. Goodbye!");
         }
 
-
+        /// <summary>
+        /// Handles the category menu operations including create, list, find, update, and delete categories.
+        /// </summary>
         private async Task CategoryMenu()
         {
             var exit = false;
@@ -212,6 +234,9 @@ namespace FinTrack.CustomConsole
             while (!exit);
         }
 
+        /// <summary>
+        /// Handles the transaction menu operations including create, list, find, update, delete, and calculate balances and profits.
+        /// </summary>
         private async Task TransactionMenu()
         {
             var exit = false;
@@ -376,6 +401,13 @@ namespace FinTrack.CustomConsole
             while (!exit);
         }
 
+        /// <summary>
+        /// Prompts the user for an integer value within a given range.
+        /// </summary>
+        /// <param name="min">Minimum allowed value.</param>
+        /// <param name="max">Maximum allowed value.</param>
+        /// <param name="name">Name of the input (for messages).</param>
+        /// <returns>Validated integer input.</returns>
         private static int SetInt(int min, int max, string name)
         {
             int value = 0;
@@ -406,6 +438,13 @@ namespace FinTrack.CustomConsole
             return value;
         }
 
+        /// <summary>
+        /// Prompts the user for a string input with length validation.
+        /// </summary>
+        /// <param name="minLength">Minimum allowed length.</param>
+        /// <param name="maxLength">Maximum allowed length.</param>
+        /// <param name="name">Name of the input (for messages).</param>
+        /// <returns>Validated string input.</returns>
         private static string SetString(int minLength, int maxLength, string name)
         {
             string value = string.Empty;
@@ -434,6 +473,14 @@ namespace FinTrack.CustomConsole
             }
             return value;
         }
+
+        /// <summary>
+        /// Prompts the user for a decimal value within a given range.
+        /// </summary>
+        /// <param name="min">Minimum allowed value.</param>
+        /// <param name="max">Maximum allowed value.</param>
+        /// <param name="name">Name of the input (for messages).</param>
+        /// <returns>Validated decimal input.</returns>
         private static decimal SetDecimal(decimal min, decimal max, string name)
         {
             decimal value = 0;
