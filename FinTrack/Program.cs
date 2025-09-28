@@ -35,4 +35,4 @@ var cc = new CustomConsole(categoryService, transactionService, reportService);
 
 await cc.Run();
 
-// Console.WriteLine("Hello, World!");
+Console.WriteLine("Hello, World!");
