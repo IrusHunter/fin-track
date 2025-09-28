@@ -3,161 +3,133 @@ using System.Linq;
 using System.Threading.Tasks;
 using FinTrack.Models;
 using FinTrack.Repositories;
-using Microsoft.EntityFrameworkCore;
+using FinTrack.Services;
+using Moq;
 using Xunit;
 
-namespace FinTrack.Tests.Repositories
+namespace FinTrack.Tests.Services
 {
-    public class TransactionRepositoryTests
+    public class CategoryServiceTests
     {
-        private ApplicationDbContext GetDbContext(string dbName)
-        {
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(databaseName: dbName)
-                .Options;
+        private readonly Mock<ICategoryRepository> _repoMock;
+        private readonly CategoryService _service;
 
-            return new ApplicationDbContext(options);
+        public CategoryServiceTests()
+        {
+            _repoMock = new Mock<ICategoryRepository>();
+            _service = new CategoryService(_repoMock.Object);
         }
 
         [Fact]
-        public async Task Create_ShouldAddTransaction()
+        public async Task Create_ValidCategory_CallsRepositoryAndSetsTimestamps()
         {
-            using var db = GetDbContext(nameof(Create_ShouldAddTransaction));
-            var repo = new TransactionRepository(db);
+            // Arrange
+            var cat = new Category { Name = "Food", TaxAmount = 5m };
+            _repoMock.Setup(r => r.FindByName(cat.Name)).ReturnsAsync((Category?)null);
+            _repoMock.Setup(r => r.Create(It.IsAny<Category>()))
+                     .ReturnsAsync((Category c) => c);
 
-            var transaction = new Transaction { Name = "Coffee", SumAfterTax = 10, CreatedAt = DateTime.UtcNow };
+            // Act
+            var created = await _service.Create(cat);
 
-            var result = await repo.Create(transaction);
-
-            Assert.NotNull(result);
-            Assert.True(result.Id > 0);
-            Assert.Equal("Coffee", result.Name);
+            // Assert
+            _repoMock.Verify(r => r.Create(It.Is<Category>(
+                c => c.Name == "Food" && c.CreatedAt != default && c.UpdatedAt != default)), Times.Once);
+            Assert.Equal("Food", created.Name);
         }
 
         [Fact]
-        public async Task Find_ShouldReturnTransaction_WhenExists()
+        public async Task Create_WhenNameTooLong_ThrowsException()
         {
-            using var db = GetDbContext(nameof(Find_ShouldReturnTransaction_WhenExists));
-            var repo = new TransactionRepository(db);
+            var cat = new Category
+            {
+                Name = new string('x', Category.MaxNameLength + 1),
+                TaxAmount = 5m
+            };
+            _repoMock.Setup(r => r.FindByName(It.IsAny<string>())).ReturnsAsync((Category?)null);
 
-            var t = new Transaction { Name = "Lunch", SumAfterTax = 20, CreatedAt = DateTime.UtcNow };
-            db.Transactions.Add(t);
-            await db.SaveChangesAsync();
-
-            var result = await repo.Find(t.Id);
-
-            Assert.NotNull(result);
-            Assert.Equal("Lunch", result!.Name);
+            await Assert.ThrowsAsync<Exception>(() => _service.Create(cat));
         }
 
         [Fact]
-        public async Task FindByName_ShouldReturnTransaction_WhenExists()
+        public async Task Create_WhenDuplicateName_ThrowsException()
         {
-            using var db = GetDbContext(nameof(FindByName_ShouldReturnTransaction_WhenExists));
-            var repo = new TransactionRepository(db);
+            var cat = new Category { Id = 1, Name = "Food", TaxAmount = 5m };
+            _repoMock.Setup(r => r.FindByName("Food")).ReturnsAsync(new Category { Id = 2, Name = "Food" });
 
-            db.Transactions.Add(new Transaction { Name = "Book", SumAfterTax = 30, CreatedAt = DateTime.UtcNow });
-            await db.SaveChangesAsync();
-
-            var result = await repo.FindByName("Book");
-
-            Assert.NotNull(result);
-            Assert.Equal("Book", result!.Name);
+            await Assert.ThrowsAsync<Exception>(() => _service.Create(cat));
         }
 
         [Fact]
-        public async Task FindAll_ShouldReturnAllTransactions()
+        public async Task Update_ValidCategory_CallsRepositoryAndSetsUpdatedAt()
         {
-            using var db = GetDbContext(nameof(FindAll_ShouldReturnAllTransactions));
-            var repo = new TransactionRepository(db);
+            var cat = new Category { Id = 1, Name = "Food", TaxAmount = 5m };
+            _repoMock.Setup(r => r.FindByName("Food")).ReturnsAsync(cat);
 
-            db.Transactions.AddRange(
-                new Transaction { Name = "A", SumAfterTax = 1, CreatedAt = DateTime.UtcNow },
-                new Transaction { Name = "B", SumAfterTax = 2, CreatedAt = DateTime.UtcNow }
-            );
-            await db.SaveChangesAsync();
+            await _service.Update(cat);
 
-            var result = await repo.FindAll();
-
-            Assert.Equal(2, result.Length);
+            _repoMock.Verify(r => r.Update(It.Is<Category>(
+                c => c.Id == 1 && c.UpdatedAt != default)), Times.Once);
         }
 
         [Fact]
-        public async Task Update_ShouldModifyTransaction()
+        public async Task Delete_NoTransactions_CallsHardDelete()
         {
-            using var db = GetDbContext(nameof(Update_ShouldModifyTransaction));
-            var repo = new TransactionRepository(db);
+            var cat = new Category { Id = 1, Name = "Food", Transactions = Array.Empty<Transaction>() };
+            _repoMock.Setup(r => r.Find(1)).ReturnsAsync(cat);
 
-            var t = new Transaction { Name = "Old", SumAfterTax = 100, CreatedAt = DateTime.UtcNow };
-            db.Transactions.Add(t);
-            await db.SaveChangesAsync();
+            await _service.Delete(1);
 
-            t.Name = "New";
-            await repo.Update(t);
-
-            var updated = await repo.Find(t.Id);
-
-            Assert.NotNull(updated);
-            Assert.Equal("New", updated!.Name);
+            _repoMock.Verify(r => r.HardDelete(1), Times.Once);
+            _repoMock.Verify(r => r.SoftDelete(It.IsAny<int>()), Times.Never);
         }
 
         [Fact]
-        public async Task HardDelete_ShouldRemoveTransaction()
+        public async Task Delete_WithTransactions_CallsSoftDelete()
         {
-            using var db = GetDbContext(nameof(HardDelete_ShouldRemoveTransaction));
-            var repo = new TransactionRepository(db);
+            var cat = new Category
+            {
+                Id = 1,
+                Name = "Food",
+                Transactions = new[] { new Transaction() }
+            };
+            _repoMock.Setup(r => r.Find(1)).ReturnsAsync(cat);
 
-            var t = new Transaction { Name = "ToDelete", SumAfterTax = 50, CreatedAt = DateTime.UtcNow };
-            db.Transactions.Add(t);
-            await db.SaveChangesAsync();
+            await _service.Delete(1);
 
-            await repo.HardDelete(t.Id);
-
-            var result = await repo.Find(t.Id);
-            Assert.Null(result);
+            _repoMock.Verify(r => r.SoftDelete(1), Times.Once);
+            _repoMock.Verify(r => r.HardDelete(It.IsAny<int>()), Times.Never);
         }
 
         [Fact]
-        public async Task FillModel_ShouldLoadCategory()
+        public async Task Delete_NotFound_ThrowsException()
         {
-            using var db = GetDbContext(nameof(FillModel_ShouldLoadCategory));
-            var repo = new TransactionRepository(db);
+            _repoMock.Setup(r => r.Find(1)).ReturnsAsync((Category?)null);
 
-            var category = new Category { Name = "Food" };
-            db.Categories.Add(category);
-            await db.SaveChangesAsync();
-
-            var t = new Transaction { Name = "Pizza", SumAfterTax = 25, CreatedAt = DateTime.UtcNow, CategoryId = category.Id };
-            db.Transactions.Add(t);
-            await db.SaveChangesAsync();
-
-            var result = await repo.FillModel(t);
-
-            Assert.NotNull(result.Category);
-            Assert.Equal("Food", result.Category.Name);
+            await Assert.ThrowsAsync<Exception>(() => _service.Delete(1));
         }
 
         [Fact]
-        public async Task SelectInPeriod_ShouldReturnOnlyTransactionsWithinRange()
+        public async Task Find_ReturnsCategoryFromRepository()
         {
-            using var db = GetDbContext(nameof(SelectInPeriod_ShouldReturnOnlyTransactionsWithinRange));
-            var repo = new TransactionRepository(db);
+            var cat = new Category { Id = 1, Name = "Food" };
+            _repoMock.Setup(r => r.Find(1)).ReturnsAsync(cat);
 
-            var t1 = new Transaction { Name = "InRange1", SumAfterTax = 10, CreatedAt = new DateTime(2024, 01, 10) };
-            var t2 = new Transaction { Name = "InRange2", SumAfterTax = 20, CreatedAt = new DateTime(2024, 01, 15) };
-            var t3 = new Transaction { Name = "OutOfRange", SumAfterTax = 30, CreatedAt = new DateTime(2023, 12, 25) };
-            db.Transactions.AddRange(t1, t2, t3);
-            await db.SaveChangesAsync();
+            var result = await _service.Find(1);
 
-            var start = new DateTime(2024, 01, 01);
-            var end = new DateTime(2024, 01, 31);
+            Assert.Equal(cat, result);
+        }
 
-            var result = await repo.SelectInPeriod(start, end);
+        [Fact]
+        public async Task FindAll_ReturnsCategoriesFromRepository()
+        {
+            var cats = new[] { new Category { Id = 1, Name = "Food" } };
+            _repoMock.Setup(r => r.FindAll()).ReturnsAsync(cats);
 
-            Assert.Equal(2, result.Length);
-            Assert.Contains(result, t => t.Name == "InRange1");
-            Assert.Contains(result, t => t.Name == "InRange2");
-            Assert.DoesNotContain(result, t => t.Name == "OutOfRange");
+            var result = await _service.FindAll();
+
+            Assert.Single(result);
+            Assert.Equal("Food", result.First().Name);
         }
     }
 }
