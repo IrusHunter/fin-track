@@ -6,7 +6,7 @@ using FinTrack.Repositories;
 using FinTrack.Services;
 using FinTrack.CustomConsole;
 
-Env.Load();
+Env.TraversePath().Load();
 
 var host = Environment.GetEnvironmentVariable("DB_HOST") ?? throw new Exception("DB_HOST is not specified in .env file");
 var user = Environment.GetEnvironmentVariable("DB_USER") ?? throw new Exception("DB_USER is not specified in .env file");

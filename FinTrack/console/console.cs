@@ -23,7 +23,11 @@ namespace FinTrack.CustomConsole
             var exit = false;
             do
             {
-                Console.Clear();
+                try
+                {
+                    Console.Clear();
+                }
+                catch (Exception) { Console.WriteLine("\n\n\n\n"); }
                 Console.WriteLine("Welcome to FinTrack!\n");
                 Console.WriteLine("=== FinTrack Menu ===");
                 Console.WriteLine("1 - Category.");
@@ -47,8 +51,6 @@ namespace FinTrack.CustomConsole
                     default: exit = true; break;
                 }
 
-                Console.WriteLine("Press any key to continue...");
-                Console.ReadKey();
             } while (!exit);
             Console.WriteLine("Thank you for using FinTrack. Wishing you financial success. Goodbye!");
         }
@@ -59,7 +61,11 @@ namespace FinTrack.CustomConsole
             var exit = false;
             do
             {
-                Console.Clear();
+                try
+                {
+                    Console.Clear();
+                }
+                catch (Exception) { }
                 Console.WriteLine("=== Category Menu ===");
                 Console.WriteLine("1 - Create new category.");
                 Console.WriteLine("2 - List all categories");
@@ -157,7 +163,11 @@ namespace FinTrack.CustomConsole
                 }
 
                 Console.WriteLine("Press any key to continue...");
-                Console.ReadKey();
+                try
+                {
+                    Console.ReadKey();
+                }
+                catch (Exception) { }
             }
             while (!exit);
         }
