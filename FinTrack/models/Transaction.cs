@@ -28,5 +28,10 @@ namespace FinTrack.Models
         [ForeignKey(nameof(Category))]
         public int CategoryId { get; set; }
         public Category Category { get; set; } = null!;
+
+        public override string ToString()
+        {
+            return $"transaction {Id}: {Name}, sum: {Sum}, sum after tax: {SumAfterTax}, category id: {CategoryId}, created at {CreatedAt}, updated at {UpdatedAt}";
+        }
     }
 }

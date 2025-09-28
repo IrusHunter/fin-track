@@ -12,10 +12,18 @@ namespace FinTrack.CustomConsole
     public class CustomConsole : ICustomConsole
     {
         private readonly ICategoryService _categoryService;
+        private readonly ITransactionService _transactionService;
+        private readonly IReportService _reportService;
 
-        public CustomConsole(ICategoryService categoryService)
+        public CustomConsole(
+            ICategoryService categoryService,
+            ITransactionService transactionService,
+            IReportService reportService
+            )
         {
             _categoryService = categoryService;
+            _transactionService = transactionService;
+            _reportService = reportService;
         }
 
         public async Task Run()
@@ -32,10 +40,11 @@ namespace FinTrack.CustomConsole
                 Console.WriteLine("=== FinTrack Menu ===");
                 Console.WriteLine("1 - Category.");
                 Console.WriteLine("2 - Transaction.");
+                Console.WriteLine("3 - Reports.");
                 Console.WriteLine("0 - Exit ");
                 Console.WriteLine("=====================");
 
-                switch (SetInt(0, 2, "option"))
+                switch (SetInt(0, 3, "option"))
                 {
                     case 1:
                         {
@@ -45,6 +54,37 @@ namespace FinTrack.CustomConsole
                     case 2:
                         {
                             await TransactionMenu();
+                            break;
+                        }
+
+                    case 3:
+                        {
+                            Console.WriteLine("Enter start date (yyyy-mm-dd):");
+                            DateTime start, end;
+                            while (!DateTime.TryParse(Console.ReadLine(), out start))
+                                Console.WriteLine("Invalid date. Try again:");
+                            Console.WriteLine("Enter end date (yyyy-mm-dd):");
+                            while (!DateTime.TryParse(Console.ReadLine(), out end))
+                                Console.WriteLine("Invalid date. Try again:");
+                            try
+                            {
+                                var report = await _reportService.GetCategoryReport(start, end);
+                                Console.WriteLine($"Category report for period {start:yyyy-MM-dd} - {end:yyyy-MM-dd}:");
+                                foreach (var item in report)
+                                {
+                                    Console.WriteLine($"{item.Key}: {item.Value}");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error: {ex.Message}");
+                            }
+                            Console.WriteLine("Press any key to continue...");
+                            try
+                            {
+                                Console.ReadKey();
+                            }
+                            catch (Exception) { }
                             break;
                         }
 
@@ -172,45 +212,168 @@ namespace FinTrack.CustomConsole
             while (!exit);
         }
 
-
         private async Task TransactionMenu()
         {
-            Console.Clear();
-            Console.WriteLine("=== Category Menu ===");
-            // Console.WriteLine("1 - Create new category.");
-            // Console.WriteLine("2 - List all categories");
-            // Console.WriteLine("3 - Find category");
-            // Console.WriteLine("4 - Update category");
-            // Console.WriteLine("5 - Delete category");
-            // Console.WriteLine("0 - Exit ");
-            Console.Write("Choose option: ");
-
-            switch (Console.ReadLine())
+            var exit = false;
+            do
             {
-                case "1":
-                    {
-                        // var category = new Category();
-                        // category.Name = Console.ReadLine();
-                        // category.TaxAmount = int.Parse(Console.ReadLine());
+                try
+                {
+                    Console.Clear();
+                }
+                catch (Exception) { }
+                Console.WriteLine("=== Transaction Menu ===");
+                Console.WriteLine("1 - Create new transaction");
+                Console.WriteLine("2 - List all transactions");
+                Console.WriteLine("3 - Find transaction");
+                Console.WriteLine("4 - Update transaction");
+                Console.WriteLine("5 - Delete transaction");
+                Console.WriteLine("6 - Show company balance");
+                Console.WriteLine("7 - Show month profit");
+                Console.WriteLine("8 - Show period profit");
+                Console.WriteLine("0 - Exit");
+                Console.WriteLine("========================");
 
-                        // await _categoryService.Create(category);
-                        break;
-                    }
-                case "2":
-                    {
-                        break;
-                    }
-                case "3":
-                    {
-                        break;
-                    }
-                case "4":
-                    {
-                        break;
-                    }
+                switch (SetInt(0, 8, "option"))
+                {
+                    case 1:
+                        {
+                            var transaction = new Transaction();
+                            transaction.Name = SetString(1, Transaction.MaxNameLength, "name");
+                            Console.WriteLine("Note: Use negative sum for expenses and positive sum for income.");
+                            transaction.Sum = SetDecimal(decimal.MinValue, decimal.MaxValue, "sum");
+                            transaction.CategoryId = SetInt(1, int.MaxValue, "category id");
+                            try
+                            {
+                                var resTransaction = await _transactionService.Create(transaction);
+                                Console.WriteLine($"Transaction ({resTransaction}) created successfully.");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error: {ex.Message}");
+                            }
+                            break;
+                        }
+                    case 2:
+                        {
+                            var transactions = await _transactionService.FindAll();
+                            foreach (var tr in transactions)
+                            {
+                                Console.WriteLine(tr);
+                            }
+                            break;
+                        }
+                    case 3:
+                        {
+                            int id = SetInt(1, int.MaxValue, "id");
+                            var transaction = await _transactionService.Find(id);
+                            if (transaction == null)
+                            {
+                                Console.WriteLine($"Transaction {id} not found.");
+                            }
+                            else
+                            {
+                                Console.WriteLine(transaction);
+                            }
+                            break;
+                        }
+                    case 4:
+                        {
+                            int id = SetInt(1, int.MaxValue, "id");
+                            var transaction = await _transactionService.Find(id);
+                            if (transaction == null)
+                            {
+                                Console.WriteLine($"Transaction {id} not found.");
+                                break;
+                            }
+                            Console.WriteLine($"Current transaction data: {transaction}");
+                            transaction.Name = SetString(1, Transaction.MaxNameLength, "new name");
+                            transaction.Sum = SetDecimal(decimal.MinValue, decimal.MaxValue, "new sum");
+                            transaction.CategoryId = SetInt(1, int.MaxValue, "new category id");
+                            try
+                            {
+                                await _transactionService.Update(transaction);
+                                Console.WriteLine($"Transaction ({transaction}) updated successfully.");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error: {ex.Message}");
+                            }
+                            break;
+                        }
+                    case 5:
+                        {
+                            int id = SetInt(1, int.MaxValue, "id");
+                            try
+                            {
+                                await _transactionService.Delete(id);
+                                Console.WriteLine($"Transaction {id} deleted successfully.");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error: {ex.Message}");
+                            }
+                            break;
+                        }
+                    case 6:
+                        {
+                            try
+                            {
+                                var balance = await _transactionService.GetCompanyBalance();
+                                Console.WriteLine($"Company balance: {balance}");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error: {ex.Message}");
+                            }
+                            break;
+                        }
+                    case 7:
+                        {
+                            int month = SetInt(1, 12, "month");
+                            int year = SetInt(1, 9999, "year");
+                            try
+                            {
+                                var profit = await _transactionService.GetMonthProfit(month, year);
+                                Console.WriteLine($"Profit for {month}/{year}: {profit}");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error: {ex.Message}");
+                            }
+                            break;
+                        }
+                    case 8:
+                        {
+                            Console.WriteLine("Enter start date (yyyy-mm-dd):");
+                            DateTime start, end;
+                            while (!DateTime.TryParse(Console.ReadLine(), out start))
+                                Console.WriteLine("Invalid date. Try again:");
+                            Console.WriteLine("Enter end date (yyyy-mm-dd):");
+                            while (!DateTime.TryParse(Console.ReadLine(), out end))
+                                Console.WriteLine("Invalid date. Try again:");
+                            try
+                            {
+                                var profit = await _transactionService.GetPeriodProfit(start, end);
+                                Console.WriteLine($"Profit for period {start:yyyy-MM-dd} - {end:yyyy-MM-dd}: {profit}");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error: {ex.Message}");
+                            }
+                            break;
+                        }
+                    default: exit = true; break;
+                }
 
-                default: break;
+                Console.WriteLine("Press any key to continue...");
+                try
+                {
+                    Console.ReadKey();
+                }
+                catch (Exception) { }
             }
+            while (!exit);
         }
 
         private static int SetInt(int min, int max, string name)

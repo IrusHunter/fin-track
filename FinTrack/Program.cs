@@ -26,7 +26,12 @@ db.Database.EnsureCreated();
 
 var categoryRepository = new CategoryRepository(db);
 var categoryService = new CategoryService(categoryRepository);
-var cc = new CustomConsole(categoryService);
+var reportRepository = new ReportRepository(db);
+
+var transactionRepository = new TransactionRepository(db);
+var transactionService = new TransactionService(transactionRepository, categoryRepository);
+var reportService = new ReportService(reportRepository);
+var cc = new CustomConsole(categoryService, transactionService, reportService);
 
 await cc.Run();
 

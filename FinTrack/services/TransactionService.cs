@@ -104,7 +104,7 @@ namespace FinTrack.Services
 
         public async Task<Transaction[]> GetMonthTransactions(int month, int year)
         {
-            var start = new DateTime(year, month, 1);
+            var start = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
             var end = start.AddMonths(1);
 
             return await _transactionRepository.SelectInPeriod(start, end);
@@ -117,6 +117,9 @@ namespace FinTrack.Services
 
         public async Task<Transaction[]> GetPeriodTransactions(DateTime start, DateTime end)
         {
+            start = start.ToUniversalTime();
+            end = end.ToUniversalTime();
+
             return await _transactionRepository.SelectInPeriod(start, end);
         }
 
