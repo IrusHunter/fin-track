@@ -7,13 +7,15 @@ namespace FinTrack.Repositories
 {
     public interface ITransactionRepository
     {
-        Task<Transaction> Create(Transaction transaction);
-        Task<Transaction?> Find(int id);
-        Task<Transaction?> FindByName(string name);
-        Task<Transaction[]> FindAll();
-        Task Update(Transaction transaction);
-        Task HardDelete(int id);
-        Task<Transaction> FillModel(Transaction transaction);
+        public Task<Transaction> Create(Transaction transaction);
+        public Task<Transaction?> Find(int id);
+        public Task<Transaction?> FindByName(string name);
+        public Task<Transaction[]> FindAll();
+        public Task Update(Transaction transaction);
+        public Task HardDelete(int id);
+        public Task<Transaction> FillModel(Transaction transaction);
+        public Task<Transaction[]> SelectInPeriod(DateTime start, DateTime end);
+
     }
 
     public class TransactionRepository : ITransactionRepository
@@ -65,5 +67,12 @@ namespace FinTrack.Repositories
             await _db.Entry(transaction).Reference(t => t.Category).LoadAsync();
             return transaction;
         }
+
+        public async Task<Transaction[]> SelectInPeriod(DateTime start, DateTime end)
+        {
+            var transactions = await _db.Transactions.Where(t => t.CreatedAt > start && t.CreatedAt < end).ToArrayAsync();
+            return transactions;
+        }
+
     }
 }

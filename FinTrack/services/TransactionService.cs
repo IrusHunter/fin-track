@@ -7,11 +7,16 @@ namespace FinTrack.Services
 {
     public interface ITransactionService
     {
-        Task<Transaction> Create(Transaction transaction);
-        Task<Transaction?> Find(int id);
-        Task<Transaction[]> FindAll();
-        Task Update(Transaction transaction);
-        Task Delete(int id);
+        public Task<Transaction> Create(Transaction transaction);
+        public Task<Transaction?> Find(int id);
+        public Task<Transaction[]> FindAll();
+        public Task Update(Transaction transaction);
+        public Task Delete(int id);
+        public Task<decimal> GetCompanyBalance();
+        public Task<decimal> GetMonthProfit(int month, int year);
+        public Task<Transaction[]> GetMonthTransactions(int month, int year);
+        public Task<decimal> GetPeriodProfit(DateTime start, DateTime end);
+        public Task<Transaction[]> GetPeriodTransactions(DateTime start, DateTime end);
     }
 
     public class TransactionService : ITransactionService
@@ -82,9 +87,47 @@ namespace FinTrack.Services
         private async Task CalculateTax(Transaction transaction)
         {
             var category = await _categoryRepository.Find(transaction.CategoryId) ?? throw new Exception($"Category {transaction.CategoryId} not found.");
-            
+
             if (transaction.Sum > 0) { transaction.SumAfterTax = transaction.Sum * (1 - category.TaxAmount); }
             else { transaction.SumAfterTax = transaction.Sum; }
+        }
+
+        public async Task<decimal> GetCompanyBalance()
+        {
+            return CalculateProfit(await _transactionRepository.FindAll());
+        }
+
+        public async Task<decimal> GetMonthProfit(int month, int year)
+        {
+            return CalculateProfit(await GetMonthTransactions(month, year));
+        }
+
+        public async Task<Transaction[]> GetMonthTransactions(int month, int year)
+        {
+            var start = new DateTime(year, month, 1);
+            var end = start.AddMonths(1);
+
+            return await _transactionRepository.SelectInPeriod(start, end);
+        }
+
+        public async Task<decimal> GetPeriodProfit(DateTime start, DateTime end)
+        {
+            return CalculateProfit(await GetPeriodTransactions(start, end));
+        }
+
+        public async Task<Transaction[]> GetPeriodTransactions(DateTime start, DateTime end)
+        {
+            return await _transactionRepository.SelectInPeriod(start, end);
+        }
+
+        private static decimal CalculateProfit(Transaction[] transactions)
+        {
+            decimal result = 0M;
+            foreach (var tr in transactions)
+            {
+                result += tr.SumAfterTax;
+            }
+            return result;
         }
     }
 }
