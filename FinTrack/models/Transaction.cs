@@ -25,7 +25,7 @@ namespace FinTrack.Models
         /// Name of the transaction. Required and limited to <see cref="MaxNameLength"/> characters.
         /// </summary>
         [Required]
-        [MaxLength(100)]
+        [MaxLength(MaxNameLength)]
         public string Name { get; set; } = string.Empty;
 
         /// <summary>
