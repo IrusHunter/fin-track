@@ -177,8 +177,20 @@ namespace FinTrack.Services
         {
             var category = await _categoryRepository.Find(transaction.CategoryId) ?? throw new Exception($"Category {transaction.CategoryId} not found.");
 
-            if (transaction.Sum > 0) { transaction.SumAfterTax = transaction.Sum * (1 - category.TaxAmount / 100); }
-            else { transaction.SumAfterTax = transaction.Sum; }
+            var sumAfterTax = transaction.Sum;
+            switch (category.TaxType)
+            {
+                case TaxType.GeneralTax:
+                    sumAfterTax = transaction.Sum - transaction.Sum * category.TaxAmount / 100;
+                    break;
+                case TaxType.ExpenseTax:
+                    if (transaction.Sum < 0)
+                    {
+                        sumAfterTax = transaction.Sum + transaction.Sum * category.TaxAmount / 100;
+                    }
+                    break;
+            }
+            transaction.SumAfterTax = sumAfterTax;
         }
 
         /// <inheritdoc/>

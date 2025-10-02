@@ -144,6 +144,8 @@ namespace FinTrack.CustomConsole
                             var category = new Category();
                             category.Name = SetString(1, Category.MaxNameLength, "name");
                             category.TaxAmount = SetDecimal(Category.MinTaxAmount, Category.MaxTaxAmount, "tax amount");
+                            Console.WriteLine("Note: general tax - 0, expense tax - 1");
+                            category.TaxType = (TaxType)SetInt(0, 1, "tax type");
 
                             try
                             {
