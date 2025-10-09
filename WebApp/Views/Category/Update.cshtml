@@ -1,0 +1,47 @@
+@model FinTrack.Models.Category
+@{
+    ViewData["Title"] = "Update Category";
+}
+
+<div class="container mt-4">
+    <h2>Update Category</h2>
+    <hr />
+
+    <!-- Загальні помилки -->
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+    <form asp-action="Update" method="post">
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" asp-for="Id" />
+
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label"></label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="TaxAmount" class="form-label"></label>
+            <input asp-for="TaxAmount" type="number" step="0.01" min="0" max="99.99" class="form-control" />
+            <span asp-validation-for="TaxAmount" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="TaxType" class="form-label"></label>
+            <select asp-for="TaxType" class="form-select" asp-items="Html.GetEnumSelectList<FinTrack.Models.TaxType>()">
+                <option value="">-- Select Tax Type --</option>
+            </select>
+            <span asp-validation-for="TaxType" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-warning">✏️ Update</button>
+        <a asp-action="Index" class="btn btn-secondary">🔙 Back to list</a>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

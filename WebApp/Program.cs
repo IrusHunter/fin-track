@@ -11,11 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 {
     builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(ApplicationDbContext.GetConnectionStringFromENV()));
 
-    builder.Services.AddScoped<CategoryRepository>();
-    builder.Services.AddScoped<TransactionRepository>();
+    builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+    builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
-    builder.Services.AddScoped<CategoryService>();
-    builder.Services.AddScoped<TransactionService>();
+    builder.Services.AddScoped<ICategoryService, CategoryService>();
+    builder.Services.AddScoped<ITransactionService, TransactionService>();
 
     // Add services to the container.
     builder.Services.AddControllersWithViews();

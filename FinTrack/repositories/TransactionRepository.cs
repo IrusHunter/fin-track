@@ -113,7 +113,16 @@ namespace FinTrack.Repositories
         /// <inheritdoc/>
         public async Task Update(Transaction transaction)
         {
-            _db.Transactions.Update(transaction);
+            var existing = await _db.Transactions.FindAsync(transaction.Id);
+            if (existing == null)
+                throw new Exception("Transaction not found");
+
+            existing.Name = transaction.Name;
+            existing.Sum = transaction.Sum;
+            existing.SumAfterTax = transaction.SumAfterTax;
+            existing.CategoryId = transaction.CategoryId;
+            existing.UpdatedAt = transaction.UpdatedAt;
+
             await _db.SaveChangesAsync();
         }
 

@@ -1,0 +1,43 @@
+@model FinTrack.Models.Transaction
+@{
+    ViewData["Title"] = "Update Transaction";
+}
+
+<div class="container mt-4">
+    <h2>✏️ Update Transaction</h2>
+    <hr />
+
+    <form asp-action="Update" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+
+        <div asp-validation-summary="All" class="text-danger"></div>
+
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label"></label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Sum" class="form-label"></label>
+            <input asp-for="Sum" type="number" step="0.01" class="form-control" />
+            <span asp-validation-for="Sum" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="CategoryId" class="form-label">Category</label>
+            <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-select"></select>
+            <span asp-validation-for="CategoryId" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-warning">💾 Update</button>
+        <a asp-action="Index" class="btn btn-secondary">🔙 Back</a>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

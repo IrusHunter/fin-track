@@ -142,9 +142,9 @@ namespace FinTrack.Services
         public async Task Delete(int id)
         {
             var transaction = await _transactionRepository.Find(id) ?? throw new Exception($"Transaction {id} not found");
-            if ((DateTime.UtcNow - transaction.CreatedAt).TotalDays <= 14)
+            if ((DateTime.UtcNow - transaction.CreatedAt).TotalDays >= 14)
             {
-                throw new Exception("You can delete transaction only after 14 days from creation date.");
+                throw new Exception("You can delete transaction only before 14 days from creation date.");
             }
             else
             {

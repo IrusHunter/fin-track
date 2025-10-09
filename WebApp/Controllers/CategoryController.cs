@@ -53,15 +53,20 @@ public class CategoryController : Controller
     }
 
     [HttpGet]
-    public IActionResult Update(int? id)
+    public async Task<IActionResult> Update(int? id)
     {
         if (id == null)
         {
             return BadRequest("ID not specified");
         }
 
+        var category = await _categoryService.Find((int)id);
+        if (category == null)
+        {
+            return NotFound("Category not found");
+        }
 
-        return View();
+        return View(category);
     }
 
     [HttpPost]

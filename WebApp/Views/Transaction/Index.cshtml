@@ -1,0 +1,53 @@
+@model IEnumerable<FinTrack.Models.Transaction>
+@{
+    ViewData["Title"] = "Transactions";
+}
+
+<div class="container mt-4">
+    <h2>💰 Transactions</h2>
+    <hr />
+
+    <a asp-action="Create" class="btn btn-success mb-3">➕ Add Transaction</a>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No transactions found.</div>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Sum</th>
+                    <th>Sum After Tax</th>
+                    <th>Category</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var t in Model)
+                {
+                    <tr>
+                        <td>@t.Id</td>
+                        <td>@t.Name</td>
+                        <td>@t.Sum</td>
+                        <td>@t.SumAfterTax</td>
+                        <td>@t.Category?.Name</td>
+                        <td>@t.CreatedAt.ToLocalTime()</td>
+                        <td>
+                            <a asp-action="Update" asp-route-id="@t.Id" class="btn btn-warning btn-sm">✏️ Edit</a>
+                            <form asp-action="Delete" asp-route-id="@t.Id" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Delete this transaction?')">🗑️ Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

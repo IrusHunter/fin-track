@@ -113,9 +113,18 @@ namespace FinTrack.Repositories
         /// <inheritdoc/>
         public async Task Update(Category category)
         {
-            _db.Categories.Update(category);
+            var existing = await _db.Categories.FindAsync(category.Id);
+            if (existing == null)
+                throw new Exception("Category not found");
+
+            existing.Name = category.Name;
+            existing.TaxAmount = category.TaxAmount;
+            existing.TaxType = category.TaxType;
+            existing.UpdatedAt = category.UpdatedAt;
+
             await _db.SaveChangesAsync();
         }
+
 
         /// <inheritdoc/>
         public async Task HardDelete(int id)
