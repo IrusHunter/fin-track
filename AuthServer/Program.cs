@@ -1,4 +1,5 @@
 ﻿using AuthServer;
+using DotNetEnv;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -9,6 +10,8 @@ Log.Information("Starting up");
 
 try
 {
+    Env.TraversePath().Load();
+
     var builder = WebApplication.CreateBuilder(args);
 
     builder.Host.UseSerilog((ctx, lc) => lc
