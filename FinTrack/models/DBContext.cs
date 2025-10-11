@@ -30,7 +30,7 @@ namespace FinTrack.Models
             var user = Environment.GetEnvironmentVariable("DB_USER") ?? throw new Exception("DB_USER is not specified in .env file");
             var password = Environment.GetEnvironmentVariable("DB_USER_PASSWORD") ?? throw new Exception("DB_USER_PASSWORD is not specified in .env file");
             var port = Environment.GetEnvironmentVariable("DB_PORT") ?? throw new Exception("DB_PORT is not specified in .env file");
-            var name = Environment.GetEnvironmentVariable("DB_NAME") ?? throw new Exception("DB_NAME is not specified in .env file");
+            var name = Environment.GetEnvironmentVariable("MAIN_DB_NAME") ?? throw new Exception("MAIN_DB_NAME is not specified in .env file");
 
             return $"Host = {host};Port={port};Database={name};Username={user};Password={password}";
         }

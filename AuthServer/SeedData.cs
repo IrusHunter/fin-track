@@ -18,69 +18,47 @@ public class SeedData
             context.Database.Migrate();
 
             var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var alice = userMgr.FindByNameAsync("alice").Result;
-            if (alice == null)
-            {
-                alice = new ApplicationUser
-                {
-                    UserName = "alice",
-                    Email = "AliceSmith@email.com",
-                    EmailConfirmed = true,
-                };
-                var result = userMgr.CreateAsync(alice, "Pass123$").Result;
-                if (!result.Succeeded)
-                {
-                    throw new Exception(result.Errors.First().Description);
-                }
+            var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-                result = userMgr.AddClaimsAsync(alice, new Claim[]{
-                            new Claim(JwtClaimTypes.Name, "Alice Smith"),
-                            new Claim(JwtClaimTypes.GivenName, "Alice"),
-                            new Claim(JwtClaimTypes.FamilyName, "Smith"),
-                            new Claim(JwtClaimTypes.WebSite, "http://alice.com"),
-                        }).Result;
-                if (!result.Succeeded)
-                {
-                    throw new Exception(result.Errors.First().Description);
-                }
-                Log.Debug("alice created");
-            }
-            else
+            // 1. Створюємо ролі
+            string[] roles = new[] { "user", "admin", "accountant" };
+            foreach (var role in roles)
             {
-                Log.Debug("alice already exists");
+                if (!roleMgr.RoleExistsAsync(role).Result)
+                {
+                    roleMgr.CreateAsync(new IdentityRole(role)).Wait();
+                }
             }
 
-            var bob = userMgr.FindByNameAsync("bob").Result;
-            if (bob == null)
+            // 2. Створюємо користувачів
+            var users = new List<(string Username, string FullName, string Email, string Phone, string Role)>
             {
-                bob = new ApplicationUser
-                {
-                    UserName = "bob",
-                    Email = "BobSmith@email.com",
-                    EmailConfirmed = true
-                };
-                var result = userMgr.CreateAsync(bob, "Pass123$").Result;
-                if (!result.Succeeded)
-                {
-                    throw new Exception(result.Errors.First().Description);
-                }
+                ("admin", "Admin User", "admin@example.com", "+380501234567", "admin"),
+                ("accountant", "Accountant User", "accountant@example.com", "+380501234568", "accountant"),
+                ("user", "Regular User", "user@example.com", "+380501234569", "user")
+            };
 
-                result = userMgr.AddClaimsAsync(bob, new Claim[]{
-                            new Claim(JwtClaimTypes.Name, "Bob Smith"),
-                            new Claim(JwtClaimTypes.GivenName, "Bob"),
-                            new Claim(JwtClaimTypes.FamilyName, "Smith"),
-                            new Claim(JwtClaimTypes.WebSite, "http://bob.com"),
-                            new Claim("location", "somewhere")
-                        }).Result;
-                if (!result.Succeeded)
-                {
-                    throw new Exception(result.Errors.First().Description);
-                }
-                Log.Debug("bob created");
-            }
-            else
+            foreach (var u in users)
             {
-                Log.Debug("bob already exists");
+                var appUser = userMgr.FindByNameAsync(u.Username).Result;
+                if (appUser == null)
+                {
+                    appUser = new ApplicationUser
+                    {
+                        UserName = u.Username,
+                        FullName = u.FullName,
+                        Email = u.Email,
+                        PhoneNumber = u.Phone,
+                        EmailConfirmed = true,
+                        PhoneNumberConfirmed = true
+                    };
+
+                    var result = userMgr.CreateAsync(appUser, "Password123!").Result;
+                    if (!result.Succeeded) throw new Exception(result.Errors.First().Description);
+
+                    // Додаємо роль
+                    userMgr.AddToRoleAsync(appUser, u.Role).Wait();
+                }
             }
         }
     }

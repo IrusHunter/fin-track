@@ -16,7 +16,7 @@ internal static class HostingExtensions
         var user = Environment.GetEnvironmentVariable("DB_USER") ?? throw new Exception("DB_USER is not specified in .env file");
         var password = Environment.GetEnvironmentVariable("DB_USER_PASSWORD") ?? throw new Exception("DB_USER_PASSWORD is not specified in .env file");
         var port = Environment.GetEnvironmentVariable("DB_PORT") ?? throw new Exception("DB_PORT is not specified in .env file");
-        var name = Environment.GetEnvironmentVariable("DB_NAME") ?? throw new Exception("DB_NAME is not specified in .env file");
+        var name = Environment.GetEnvironmentVariable("AUTH_DB_NAME") ?? throw new Exception("AUTH_DB_NAME is not specified in .env file");
 
         var connStr = $"Host={host};Port={port};Database={name};Username={user};Password={password}";
 
@@ -36,9 +36,21 @@ internal static class HostingExtensions
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
+        builder.Services.ConfigureApplicationCookie(options =>
+        {
+            options.Cookie.Name = "Identity.Application";
+            options.Cookie.SameSite = SameSiteMode.Lax;
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+            options.ExpireTimeSpan = TimeSpan.FromHours(1);
+            options.LoginPath = "/Account/Login";
+            options.LogoutPath = "/Account/Logout";
+        });
+
         builder.Services
             .AddIdentityServer(options =>
             {
+                options.Authentication.CookieSameSiteMode = SameSiteMode.Lax;
                 options.Events.RaiseErrorEvents = true;
                 options.Events.RaiseInformationEvents = true;
                 options.Events.RaiseFailureEvents = true;
@@ -64,7 +76,7 @@ internal static class HostingExtensions
                 options.ClientSecret = "copy client secret from Google here";
             });
 
-        var appPort = Environment.GetEnvironmentVariable("PORT") ?? throw new Exception("PORT is not specified in .env file");
+        var appPort = Environment.GetEnvironmentVariable("AUTH_PORT") ?? throw new Exception("AUTH_PORT is not specified in .env file");
         builder.WebHost.ConfigureKestrel(options =>
         {
             options.ListenAnyIP(int.Parse(appPort));
@@ -85,6 +97,7 @@ internal static class HostingExtensions
         app.UseStaticFiles();
         app.UseRouting();
         app.UseIdentityServer();
+        app.UseAuthentication();
         app.UseAuthorization();
 
         using (var scope = app.Services.CreateScope())

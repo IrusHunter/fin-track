@@ -52,7 +52,7 @@ namespace FinTrack.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("FinTrack.Models.Transaction", b =>
@@ -87,7 +87,7 @@ namespace FinTrack.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("FinTrack.Models.Transaction", b =>

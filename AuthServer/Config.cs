@@ -9,6 +9,7 @@ public static class Config
         {
             new IdentityResources.OpenId(),
             new IdentityResources.Profile(),
+            new IdentityResource("roles", new[] { "role" })
         };
 
     public static IEnumerable<ApiScope> ApiScopes =>
@@ -48,5 +49,22 @@ public static class Config
                 AllowOfflineAccess = true,
                 AllowedScopes = { "openid", "profile", "scope2" }
             },
+
+            // mvc
+            new Client
+            {
+                ClientId = "mvc_client",
+                ClientName = "MVC Client",
+                AllowedGrantTypes = GrantTypes.Code,
+                RequirePkce = true,
+                RequireClientSecret = false,
+                ClientSecrets = { new Secret("secret".Sha256()) },
+
+                RedirectUris = { $"http://localhost:{Environment.GetEnvironmentVariable("MAIN_PORT") ?? throw new Exception("MAIN_PORT is not specified in .env file")}/signin-oidc" },
+                PostLogoutRedirectUris = { $"http://localhost:{Environment.GetEnvironmentVariable("MAIN_PORT") ?? throw new Exception("MAIN_PORT is not specified in .env file")}/" },
+
+                AllowedScopes = { "openid", "profile", "roles" },
+                AllowOfflineAccess = true
+            }
         };
 }

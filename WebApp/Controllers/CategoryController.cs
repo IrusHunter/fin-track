@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using FinTrack.Models;
 using FinTrack.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApp.Models;
 
@@ -18,6 +19,8 @@ public class CategoryController : Controller
         _categoryService = categoryService;
     }
 
+    [Authorize]
+    // [Authorize(Policy = "IsUser")]
     public async Task<IActionResult> Index()
     {
         var categories = await _categoryService.FindAll();
@@ -25,6 +28,7 @@ public class CategoryController : Controller
     }
 
     [HttpGet]
+    [Authorize(Policy = "IsAdmin")]
     public IActionResult Create()
     {
         return View();
@@ -32,6 +36,7 @@ public class CategoryController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Policy = "IsAdmin")]
     public async Task<IActionResult> Create(Category category)
     {
         if (!ModelState.IsValid)
@@ -53,6 +58,7 @@ public class CategoryController : Controller
     }
 
     [HttpGet]
+    [Authorize(Policy = "IsAdmin")]
     public async Task<IActionResult> Update(int? id)
     {
         if (id == null)
@@ -71,6 +77,7 @@ public class CategoryController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Policy = "IsAdmin")]
     public async Task<IActionResult> Update(Category category)
     {
         if (!ModelState.IsValid)
@@ -93,6 +100,7 @@ public class CategoryController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Policy = "IsAdmin")]
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null)
