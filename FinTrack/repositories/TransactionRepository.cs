@@ -107,7 +107,7 @@ namespace FinTrack.Repositories
         /// <inheritdoc/>
         public async Task<Transaction[]> FindAll()
         {
-            return await _db.Transactions.ToArrayAsync();
+            return await _db.Transactions.Include(t => t.Category).ToArrayAsync();
         }
 
         /// <inheritdoc/>
