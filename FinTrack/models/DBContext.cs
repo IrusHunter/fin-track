@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace FinTrack.Models
@@ -6,7 +7,7 @@ namespace FinTrack.Models
     /// Represents the Entity Framework Core database context for the FinTrack application.
     /// Manages access to <see cref="Category"/> and <see cref="Transaction"/> entities.
     /// </summary>
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         /// <summary>
         /// Gets or sets the Categories table in the database.

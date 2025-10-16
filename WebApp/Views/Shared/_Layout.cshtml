@@ -29,6 +29,13 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Transaction"
                                 asp-action="Index">Transactions</a>
                         </li>
+                        <li class="nax-item">
+                            <form id="logoutForm" asp-controller="Account" asp-action="Logout" method="post"
+                                class="d-inline">
+                                <button type="submit" class="btn btn-link text-decoration-none">Logout</button>
+                                @Html.AntiForgeryToken()
+                            </form>
+                        </li>
                     </ul>
                 </div>
             </div>

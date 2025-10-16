@@ -1,10 +1,12 @@
 using FinTrack.Models;
 using FinTrack.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace WebApp.Controllers
 {
+    [Authorize]
     public class TransactionController : Controller
     {
         private readonly ILogger<TransactionController> _logger;

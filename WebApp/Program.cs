@@ -7,13 +7,16 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 
 Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
 {
-    builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(ApplicationDbContext.GetConnectionStringFromENV()));
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseNpgsql(ApplicationDbContext.GetConnectionStringFromENV())
+    );
 
     builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
     builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
@@ -25,69 +28,62 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddControllersWithViews();
 }
 
-builder.Services.AddAuthentication(options =>
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
+
+
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
     {
-        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-    })
-    .AddCookie()
-    .AddOpenIdConnect(options =>
-    {
-        options.Authority = $"http://localhost:{Environment.GetEnvironmentVariable("AUTH_PORT") ?? throw new Exception("AUTH_PORT is not specified in .env file")}/";
-        options.ClientId = "mvc_client";                       // має співпадати з тим, що зареєстровано на IdentityServer
-        options.ClientSecret = Environment.GetEnvironmentVariable("SECRET") ?? throw new Exception("SECRET is not specified in .env file");
-        options.ResponseType = "code";                         // рекомендується PKCE + authorization code flow
-        options.RequireHttpsMetadata = false;
-
-        options.SaveTokens = true;
-        options.GetClaimsFromUserInfoEndpoint = true;
-
-        options.Scope.Add("openid");
-        options.Scope.Add("profile");
-        options.Scope.Add("roles");
-
-        options.ClaimActions.MapJsonKey("role", "role");
-
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            NameClaimType = "name",
-            RoleClaimType = "role"
-        };
-
-        options.SaveTokens = true;
-
-        options.CallbackPath = "/signin-oidc";
+        options.ClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENTID") ?? throw new Exception("GOOGLE_CLIENTID is not specified in .env file"); ;
+        options.ClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET") ?? throw new Exception("GOOGLE_CLIENT_SECRET is not specified in .env file"); ;
     });
 
-builder.Services.AddAuthorization(options =>
-    {
-        options.AddPolicy("IsAccountant", policy =>
-            policy.RequireClaim("role", "accountant", "admin"));
-        options.AddPolicy("IsUser", policy =>
-            policy.RequireClaim("role", "user", "accountant", "admin"));
-        options.AddPolicy("IsAdmin", policy =>
-            policy.RequireClaim("role", "admin"));
-    });
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.LogoutPath = "/Account/Logout";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+    options.ExpireTimeSpan = TimeSpan.FromHours(1);
+    options.SlidingExpiration = true;
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+});
+
+// builder.Services.AddAuthorization(options =>
+//     {
+//         options.AddPolicy("IsAccountant", policy =>
+//             policy.RequireClaim("role", "accountant", "admin"));
+//         options.AddPolicy("IsUser", policy =>
+//             policy.RequireClaim("role", "user", "accountant", "admin"));
+//         options.AddPolicy("IsAdmin", policy =>
+//             policy.RequireClaim("role", "admin"));
+//     });
 
 var app = builder.Build();
 
-app.Use(async (context, next) =>
-{
-    if (context.User?.Identity?.IsAuthenticated == true)
-    {
-        Console.WriteLine("User is authenticated");
-        foreach (var c in context.User.Claims)
-        {
-            Console.WriteLine($"{c.Type} = {c.Value}");
-        }
-    }
-    else
-    {
-        Console.WriteLine("User is NOT authenticated");
-    }
+// app.Use(async (context, next) =>
+// {
+//     if (context.User?.Identity?.IsAuthenticated == true)
+//     {
+//         Console.WriteLine("User is authenticated");
+//         foreach (var c in context.User.Claims)
+//         {
+//             Console.WriteLine($"{c.Type} = {c.Value}");
+//         }
+//     }
+//     else
+//     {
+//         Console.WriteLine("User is NOT authenticated");
+//     }
 
-    await next();
-});
+//     await next();
+// });
 
 // DB Migration
 using (var scope = app.Services.CreateScope())
