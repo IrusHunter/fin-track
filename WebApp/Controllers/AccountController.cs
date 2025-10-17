@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using WebApp.Models;
 
 
 namespace WebApp.Controllers;
@@ -138,10 +139,10 @@ public class AccountController : Controller
         {
             user = new ApplicationUser
             {
-                UserName = email,
+                UserName = info.Principal.FindFirstValue(ClaimTypes.Name) ?? email,
                 Email = email,
-                FullName = info.Principal.FindFirstValue(ClaimTypes.Name) ?? email,
-                PhoneNumber = ""
+                FullName = info.Principal.FindFirstValue(ClaimTypes.GivenName) ?? email,
+                PhoneNumber = info.Principal.FindFirstValue(ClaimTypes.MobilePhone) ?? "+380000000000"
             };
 
             var createResult = await _userManager.CreateAsync(user);
@@ -186,5 +187,69 @@ public class AccountController : Controller
     public IActionResult AccessDenied()
     {
         return View();
+    }
+
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> Profile()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return NotFound();
+
+        return View(user);
+    }
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> Edit()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return NotFound();
+
+        var model = new EditProfileViewModel
+        {
+            FullName = user.FullName,
+            UserName = user.UserName!,
+            Email = user.Email!,
+            PhoneNumber = user.PhoneNumber!
+        };
+
+        return View(model);
+    }
+
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(EditProfileViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return NotFound();
+
+        user.FullName = model.FullName;
+        user.UserName = model.UserName;
+        user.Email = model.Email;
+        user.PhoneNumber = model.PhoneNumber;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            foreach (var error in result.Errors)
+                ModelState.AddModelError(string.Empty, error.Description);
+
+            return View(model);
+        }
+
+        // оновимо cookie аутентифікації, щоб не вилогінювало
+        await _signInManager.RefreshSignInAsync(user);
+
+        TempData["SuccessMessage"] = "Профіль успішно оновлено!";
+        return RedirectToAction(nameof(Profile));
     }
 }

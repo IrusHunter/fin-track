@@ -55,35 +55,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.None;
 });
 
-// builder.Services.AddAuthorization(options =>
-//     {
-//         options.AddPolicy("IsAccountant", policy =>
-//             policy.RequireClaim("role", "accountant", "admin"));
-//         options.AddPolicy("IsUser", policy =>
-//             policy.RequireClaim("role", "user", "accountant", "admin"));
-//         options.AddPolicy("IsAdmin", policy =>
-//             policy.RequireClaim("role", "admin"));
-//     });
-
 var app = builder.Build();
-
-// app.Use(async (context, next) =>
-// {
-//     if (context.User?.Identity?.IsAuthenticated == true)
-//     {
-//         Console.WriteLine("User is authenticated");
-//         foreach (var c in context.User.Claims)
-//         {
-//             Console.WriteLine($"{c.Type} = {c.Value}");
-//         }
-//     }
-//     else
-//     {
-//         Console.WriteLine("User is NOT authenticated");
-//     }
-
-//     await next();
-// });
 
 // DB Migration
 using (var scope = app.Services.CreateScope())
