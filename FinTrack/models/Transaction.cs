@@ -58,7 +58,7 @@ namespace FinTrack.Models
         /// <summary>
         /// Navigation property to the category associated with this transaction.
         /// </summary>
-        public Category Category { get; set; } = null!;
+        public Category? Category { get; set; } = null!;
 
         /// <summary>
         /// Returns a string representation of the transaction, including ID, name, sums, category, and timestamps.

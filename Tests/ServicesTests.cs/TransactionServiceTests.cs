@@ -64,23 +64,10 @@ namespace FinTrack.Tests.Services
         }
 
         [Fact]
-        public async Task Delete_ShouldThrowException_WhenTransactionIsTooRecent()
+        public async Task Delete_ShouldCallHardDelete_WhenTransactionIsTooRecent()
         {
             // Arrange
-            var t = new Transaction { Id = 1, Name = "X", CreatedAt = DateTime.UtcNow };
-            _transactionRepoMock.Setup(r => r.Find(1)).ReturnsAsync(t);
-
-            // Act + Assert
-            var ex = await Assert.ThrowsAsync<Exception>(() => _service.Delete(1));
-            Assert.Contains("only after 14 days", ex.Message);
-            _transactionRepoMock.Verify(r => r.HardDelete(It.IsAny<int>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task Delete_ShouldCallHardDelete_WhenTransactionIsOlderThan14Days()
-        {
-            // Arrange
-            var t = new Transaction { Id = 1, Name = "X", CreatedAt = DateTime.UtcNow.AddDays(-15) };
+            var t = new Transaction { Id = 1, Name = "X", CreatedAt = DateTime.UtcNow.AddDays(-5) }; // ще немає 14 днів
             _transactionRepoMock.Setup(r => r.Find(1)).ReturnsAsync(t);
 
             // Act
@@ -88,6 +75,19 @@ namespace FinTrack.Tests.Services
 
             // Assert
             _transactionRepoMock.Verify(r => r.HardDelete(1), Times.Once);
+        }
+
+        [Fact]
+        public async Task Delete_ShouldThrowException_WhenTransactionIsOlderThan14Days()
+        {
+            // Arrange
+            var t = new Transaction { Id = 1, Name = "X", CreatedAt = DateTime.UtcNow.AddDays(-20) }; // старше 14 днів
+            _transactionRepoMock.Setup(r => r.Find(1)).ReturnsAsync(t);
+
+            // Act + Assert
+            var ex = await Assert.ThrowsAsync<Exception>(() => _service.Delete(1));
+            Assert.Contains("only before 14", ex.Message);
+            _transactionRepoMock.Verify(r => r.HardDelete(It.IsAny<int>()), Times.Never);
         }
 
         [Fact]

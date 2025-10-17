@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace FinTrack.Models
 {
@@ -90,6 +91,7 @@ namespace FinTrack.Models
         /// <summary>
         /// Collection of transactions associated with this category.
         /// </summary>
+        [JsonIgnore]
         public ICollection<Transaction> Transactions { get; set; } = [];
 
         /// <summary>

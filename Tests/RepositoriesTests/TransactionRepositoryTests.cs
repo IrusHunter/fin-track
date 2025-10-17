@@ -70,9 +70,10 @@ namespace FinTrack.Tests.Repositories
             using var db = GetDbContext(nameof(FindAll_ShouldReturnAllTransactions));
             var repo = new TransactionRepository(db);
 
+            db.Categories.Add(new Category { Name = "C" });
             db.Transactions.AddRange(
-                new Transaction { Name = "A", SumAfterTax = 1, CreatedAt = DateTime.UtcNow },
-                new Transaction { Name = "B", SumAfterTax = 2, CreatedAt = DateTime.UtcNow }
+                new Transaction { Name = "A", SumAfterTax = 1, CreatedAt = DateTime.UtcNow, CategoryId = 1 },
+                new Transaction { Name = "B", SumAfterTax = 2, CreatedAt = DateTime.UtcNow, CategoryId = 1 }
             );
             await db.SaveChangesAsync();
 

@@ -55,13 +55,68 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.None;
 });
 
+builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+});
+
+// Explorer для Swagger
+builder.Services.AddVersionedApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV"; // Формат груп для Swagger: v1, v2
+    options.SubstituteApiVersionInUrl = true; // важливо для {version:apiVersion} у маршрутах
+});
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1.0", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "FinTrack API",
+        Version = "v1.0",
+        Description = "RESTful API for FinTrack - Version 1.0"
+    });
+
+    options.SwaggerDoc("v2.0", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "FinTrack API",
+        Version = "v2.0",
+        Description = "RESTful API for FinTrack - Version 2.0"
+    });
+
+    options.DocInclusionPredicate((docName, apiDesc) =>
+    {
+        var actionDescriptor = apiDesc.ActionDescriptor as Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor;
+        if (actionDescriptor == null) return false;
+
+        var apiVersion = actionDescriptor.MethodInfo
+            .GetCustomAttributes(true)
+            .OfType<Microsoft.AspNetCore.Mvc.MapToApiVersionAttribute>()
+            .FirstOrDefault();
+
+        if (apiVersion == null) return false;
+
+        return apiVersion.Versions.Any(v => $"v{v.ToString()}" == docName);
+    });
+});
+
 var app = builder.Build();
 
 // DB Migration
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
+    if (db.Database.IsRelational())
+    {
+        db.Database.Migrate();
+    }
+    else
+    {
+        db.Database.EnsureCreated();
+    }
 }
 
 // Configure the HTTP request pipeline.
@@ -77,6 +132,14 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseSwagger();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1.0/swagger.json", "FinTrack API v1.0");
+    options.SwaggerEndpoint("/swagger/v2.0/swagger.json", "FinTrack API v2.0");
+    options.RoutePrefix = "swagger";
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -86,3 +149,5 @@ app.MapControllerRoute(
 
 var port = Environment.GetEnvironmentVariable("MAIN_PORT") ?? throw new Exception("MAIN_PORT is not specified in .env file");
 app.Run($"http://localhost:{port}");
+
+public partial class Program { }
