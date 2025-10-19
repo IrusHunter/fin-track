@@ -68,5 +68,13 @@ namespace FinTrack.Models
         {
             return $"transaction {Id}: {Name}, sum: {Sum}, sum after tax: {SumAfterTax}, category id: {CategoryId}, created at {CreatedAt}, updated at {UpdatedAt}";
         }
+
+        // Foreign key referencing the ApplicationUser who created this transaction.
+        [ForeignKey(nameof(User))]
+        public string UserId { get; set; } = null!; // Використовуємо string для IdentityUser ID
+        /// <summary>
+        /// Navigation property to the user associated with this transaction (Second JOIN).
+        /// </summary>
+        public ApplicationUser? User { get; set; }
     }
 }

@@ -2,6 +2,8 @@ using System;
 using System.Threading.Tasks;
 using FinTrack.Models;
 using Microsoft.EntityFrameworkCore;
+using FinTrack.Models.ViewModels;
+using System.Linq;
 
 namespace FinTrack.Repositories
 {
@@ -64,6 +66,8 @@ namespace FinTrack.Repositories
         /// <param name="end">End date of the period (exclusive).</param>
         /// <returns>An array of transactions within the specified period.</returns>
         public Task<Transaction[]> SelectInPeriod(DateTime start, DateTime end);
+
+        public Task<Transaction[]> Search(TransactionSearchViewModel searchModel);
 
     }
 
@@ -146,6 +150,68 @@ namespace FinTrack.Repositories
         {
             var transactions = await _db.Transactions.Where(t => t.CreatedAt > start && t.CreatedAt < end).ToArrayAsync();
             return transactions;
+        }
+
+        public async Task<Transaction[]> Search(TransactionSearchViewModel searchModel)
+        {
+            var query = _db.Transactions
+                .Include(t => t.Category) // Перший JOIN (Category) (iv)
+                .Include(t => t.User)     // Другий JOIN (ApplicationUser) (iv) - *ПЕРЕКОНАЙТЕСЯ, ЩО ВИ ДОДАЛИ ПОЛЕ UserId/User ДО МОДЕЛІ TRANSACTION*
+                .AsQueryable();
+
+            // Фільтрація за датою (i)
+            DateTime? startDateUtc = null;
+            if (searchModel.StartDate.HasValue)
+            {
+                var localDate = DateTime.SpecifyKind(searchModel.StartDate.Value, DateTimeKind.Local);
+                startDateUtc = localDate.ToUniversalTime();
+                query = query.Where(t => t.CreatedAt >= startDateUtc);
+            }
+
+            DateTime? endDateUtc = null;
+            if (searchModel.EndDate.HasValue)
+            {
+                DateTime endDate = searchModel.EndDate.Value;
+                if (endDate.Hour == 0 && endDate.Minute == 0 && endDate.Second == 0)
+                {
+                    endDate = endDate.AddDays(1);
+                }
+
+                var localDate = DateTime.SpecifyKind(endDate, DateTimeKind.Local);
+                endDateUtc = localDate.ToUniversalTime();
+
+                query = query.Where(t => t.CreatedAt <= endDateUtc);
+            }
+
+            // Фільтрація за списком CategoryIds (ii)
+            if (searchModel.CategoryIds != null && searchModel.CategoryIds.Any())
+            {
+                query = query.Where(t => searchModel.CategoryIds.Contains(t.CategoryId));
+            }
+
+            // Фільтрація за початком/кінцем Name (iii)
+            if (!string.IsNullOrEmpty(searchModel.NameStart))
+            {
+                query = query.Where(t => t.Name.StartsWith(searchModel.NameStart));
+            }
+            if (!string.IsNullOrEmpty(searchModel.NameEnd))
+            {
+                query = query.Where(t => t.Name.EndsWith(searchModel.NameEnd));
+            }
+
+            // Фільтрація у залежних таблицях (iv)
+            if (searchModel.CategoryTaxType.HasValue)
+            {
+                query = query.Where(t => t.Category != null && t.Category.TaxType == searchModel.CategoryTaxType.Value);
+            }
+            if (!string.IsNullOrEmpty(searchModel.UserNameFilter))
+            {
+                query = query.Where(t => t.User != null && t.User.UserName.Contains(searchModel.UserNameFilter));
+            }
+
+            return await query
+                .OrderByDescending(t => t.CreatedAt)
+                .ToArrayAsync();
         }
 
     }

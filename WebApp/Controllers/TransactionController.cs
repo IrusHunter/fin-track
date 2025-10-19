@@ -3,6 +3,7 @@ using FinTrack.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using FinTrack.Models.ViewModels;
 
 namespace WebApp.Controllers
 {
@@ -23,10 +24,16 @@ namespace WebApp.Controllers
             _categoryService = categoryService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(TransactionSearchViewModel searchModel)
         {
-            var transactions = await _transactionService.FindAll();
-            return View(transactions);
+            var allCategories = await _categoryService.FindAll();
+            ViewBag.AllCategories = new SelectList(allCategories, "Id", "Name");
+            ViewBag.TaxTypes = new SelectList(Enum.GetNames(typeof(TaxType)));
+
+            var transactions = await _transactionService.Search(searchModel);
+
+            searchModel.Transactions = transactions;
+            return View(searchModel);
         }
 
         [HttpGet]

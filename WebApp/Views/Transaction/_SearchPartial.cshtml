@@ -1,0 +1,59 @@
+@model FinTrack.Models.ViewModels.TransactionSearchViewModel
+@using FinTrack.Models
+
+<div class="card mb-4 border-primary">
+    <div class="card-header bg-primary text-white">
+        <h5>🔍 Фільтр транзакцій</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="Index" method="get">
+            <div class="row">
+
+                <div class="col-md-3 mb-3">
+                    <label asp-for="StartDate" class="form-label"></label>
+                    <input asp-for="StartDate" type="datetime-local" class="form-control" />
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label asp-for="EndDate" class="form-label"></label>
+                    <input asp-for="EndDate" type="datetime-local" class="form-control" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="CategoryIds" class="form-label"></label>
+                    <select asp-for="CategoryIds" asp-items="ViewBag.AllCategories" class="form-select" multiple>
+                        <option value="">-- Всі категорії --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label asp-for="NameStart" class="form-label"></label>
+                    <input asp-for="NameStart" class="form-control" placeholder="Назва починається з..." />
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label asp-for="NameEnd" class="form-label"></label>
+                    <input asp-for="NameEnd" class="form-control" placeholder="Назва закінчується на..." />
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label asp-for="CategoryTaxType" class="form-label"></label>
+                    <select asp-for="CategoryTaxType" asp-items="ViewBag.TaxTypes" class="form-select">
+                        <option value="">-- Всі типи податку --</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label asp-for="UserNameFilter" class="form-label"></label>
+                    <input asp-for="UserNameFilter" class="form-control" placeholder="Ім'я користувача (JOIN)" />
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary me-2">⚙️ Застосувати фільтр</button>
+                    <a asp-action="Index" class="btn btn-secondary">❌ Скинути</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

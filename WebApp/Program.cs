@@ -8,14 +8,30 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
-
-Env.TraversePath().Load();
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
+try
 {
+    var envPath = Path.Combine(builder.Environment.ContentRootPath, "..", ".env");
 
-    var dbProvider = Environment.GetEnvironmentVariable("DB_PROVIDER") ?? throw new Exception("DB_PROVIDER is not specified in .env file"); ;
+    if (File.Exists(envPath))
+    {
+        DotNetEnv.Env.Load(envPath);
+    }
+    else
+    {
+        DotNetEnv.Env.Load();
+    }
+}
+catch (Exception ex)
+{
+    // Ігноруємо помилку завантаження файлу, якщо вона не критична
+}
+
+{
+    var dbProvider = Environment.GetEnvironmentVariable("DB_PROVIDER") ?? throw new Exception("DB_PROVIDER is not specified in .env file");
 
     switch (dbProvider)
     {
@@ -44,7 +60,6 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddScoped<ICategoryService, CategoryService>();
     builder.Services.AddScoped<ITransactionService, TransactionService>();
 
-    // Add services to the container.
     builder.Services.AddControllersWithViews();
 }
 
@@ -87,8 +102,8 @@ builder.Services.AddApiVersioning(options =>
 // Explorer для Swagger
 builder.Services.AddVersionedApiExplorer(options =>
 {
-    options.GroupNameFormat = "'v'VVV"; // Формат груп для Swagger: v1, v2
-    options.SubstituteApiVersionInUrl = true; // важливо для {version:apiVersion} у маршрутах
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
 });
 
 builder.Services.AddSwaggerGen(options =>
@@ -125,7 +140,6 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// DB Migration
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();

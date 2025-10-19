@@ -2,6 +2,7 @@ using FinTrack.Models;
 using FinTrack.Repositories;
 using System;
 using System.Threading.Tasks;
+using FinTrack.Models.ViewModels;
 
 namespace FinTrack.Services
 {
@@ -82,6 +83,8 @@ namespace FinTrack.Services
         /// <param name="end">End date of the period (inclusive).</param>
         /// <returns>An array of transactions within the specified period.</returns>
         public Task<Transaction[]> GetPeriodTransactions(DateTime start, DateTime end);
+
+        public Task<Transaction[]> Search(TransactionSearchViewModel searchModel);
     }
 
     /// <summary>
@@ -238,6 +241,12 @@ namespace FinTrack.Services
                 result += tr.SumAfterTax;
             }
             return result;
+        }
+
+        /// <inheritdoc/>
+        public async Task<Transaction[]> Search(TransactionSearchViewModel searchModel)
+        {
+            return await _transactionRepository.Search(searchModel);
         }
     }
 }
