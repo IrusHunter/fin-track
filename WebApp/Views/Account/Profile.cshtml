@@ -3,24 +3,28 @@
     ViewData["Title"] = "Мій профіль";
 }
 
-<h2>Мій профіль</h2>
+<div class="item-container">
 
-<div class="card p-3">
-    <p><strong>Повне ім’я:</strong> @Model.FullName</p>
-    <p><strong>Логін:</strong> @Model.UserName</p>
-    <p><strong>Email:</strong> @Model.Email</p>
-    <p><strong>Телефон:</strong> @Model.PhoneNumber</p>
+    <h2>Мій профіль</h2>
 
-    <div class="mt-3">
-        <a asp-action="Edit" class="btn btn-primary">Редагувати</a>
+    <div class="card p-3">
+        <p><strong>Повне ім’я:</strong> @Model.FullName</p>
+        <p><strong>Логін:</strong> @Model.UserName</p>
+        <p><strong>Email:</strong> @Model.Email</p>
+        <p><strong>Телефон:</strong> @Model.PhoneNumber</p>
 
-        <form asp-action="Logout" method="post" class="d-inline">
-            <button type="submit" class="btn btn-danger">Вийти</button>
-        </form>
+        <div class="mt-3">
+            <a asp-action="Edit" class="btn btn-primary">Редагувати</a>
+
+            <form asp-action="Logout" method="post" class="d-inline">
+                <button type="submit" class="btn btn-danger">Вийти</button>
+            </form>
+        </div>
     </div>
-</div>
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success mt-3">@TempData["SuccessMessage"]</div>
-}
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success mt-3">@TempData["SuccessMessage"]</div>
+    }
+
+</div>

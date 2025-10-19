@@ -46,3 +46,18 @@ button.accept-policy {
   white-space: nowrap;
   line-height: 60px;
 }
+
+.navbar-brand {
+  color: white;
+}
+
+.custom-navbar-bg {
+  margin-bottom: 0;
+  background-color: #303844;
+  padding: 12px 8px;
+}
+
+/* .navbar-collapse.collapse.d-sm-inline-flex.justify-content-between {
+  background-color: #1861ac;
+} */
+
