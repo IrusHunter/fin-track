@@ -14,9 +14,29 @@ Env.TraversePath().Load();
 var builder = WebApplication.CreateBuilder(args);
 
 {
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseNpgsql(ApplicationDbContext.GetConnectionStringFromENV())
-    );
+
+    var dbProvider = Environment.GetEnvironmentVariable("DB_PROVIDER") ?? throw new Exception("DB_PROVIDER is not specified in .env file"); ;
+
+    switch (dbProvider)
+    {
+        case "sqlserver":
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(ApplicationDbContext.GetConnectionStringFromENV()));
+            break;
+        case "postgres":
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseNpgsql(ApplicationDbContext.GetConnectionStringFromENV()));
+            break;
+        case "memory":
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseInMemoryDatabase(ApplicationDbContext.GetConnectionStringFromENV()));
+            break;
+        case "sqlite":
+        default:
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlite(ApplicationDbContext.GetConnectionStringFromENV()));
+            break;
+    }
 
     builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
     builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();

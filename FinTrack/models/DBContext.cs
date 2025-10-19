@@ -27,13 +27,37 @@ namespace FinTrack.Models
 
         public static string GetConnectionStringFromENV()
         {
-            var host = Environment.GetEnvironmentVariable("DB_HOST") ?? throw new Exception("DB_HOST is not specified in .env file");
-            var user = Environment.GetEnvironmentVariable("DB_USER") ?? throw new Exception("DB_USER is not specified in .env file");
-            var password = Environment.GetEnvironmentVariable("DB_USER_PASSWORD") ?? throw new Exception("DB_USER_PASSWORD is not specified in .env file");
-            var port = Environment.GetEnvironmentVariable("DB_PORT") ?? throw new Exception("DB_PORT is not specified in .env file");
-            var name = Environment.GetEnvironmentVariable("MAIN_DB_NAME") ?? throw new Exception("MAIN_DB_NAME is not specified in .env file");
+            var dbProvider = Environment.GetEnvironmentVariable("DB_PROVIDER") ?? throw new Exception("DB_PROVIDER is not specified in .env file"); ;
 
-            return $"Host = {host};Port={port};Database={name};Username={user};Password={password}";
+            switch (dbProvider.ToLower())
+            {
+                case "sqlserver":
+                    {
+                        var host = Environment.GetEnvironmentVariable("DB_HOST") ?? throw new Exception("DB_HOST is not specified in .env file");
+                        // var port = Environment.GetEnvironmentVariable("DB_PORT") ?? throw new Exception("DB_PORT is not specified in .env file");
+                        var user = Environment.GetEnvironmentVariable("DB_USER") ?? throw new Exception("DB_USER is not specified in .env file");
+                        var password = Environment.GetEnvironmentVariable("DB_USER_PASSWORD") ?? throw new Exception("DB_USER_PASSWORD is not specified in .env file");
+                        var name = Environment.GetEnvironmentVariable("MAIN_DB_NAME") ?? throw new Exception("MAIN_DB_NAME is not specified in .env file");
+                        return $"Server={host};Database={name};User Id={user};Password={password};TrustServerCertificate=True;";
+                    }
+                case "postgres":
+                    {
+                        var host = Environment.GetEnvironmentVariable("DB_HOST") ?? throw new Exception("DB_HOST is not specified in .env file");
+                        var port = Environment.GetEnvironmentVariable("DB_PORT") ?? throw new Exception("DB_PORT is not specified in .env file");
+                        var user = Environment.GetEnvironmentVariable("DB_USER") ?? throw new Exception("DB_USER is not specified in .env file");
+                        var password = Environment.GetEnvironmentVariable("DB_USER_PASSWORD") ?? throw new Exception("DB_USER_PASSWORD is not specified in .env file");
+                        var name = Environment.GetEnvironmentVariable("MAIN_DB_NAME") ?? throw new Exception("MAIN_DB_NAME is not specified in .env file");
+                        return $"Host={host};Port={port};Database={name};Username={user};Password={password}";
+                    }
+                case "sqlite":
+                    {
+                        var path = Environment.GetEnvironmentVariable("MAIN_DB_NAME") + ".db" ?? throw new Exception("MAIN_DB_NAME is not specified in .env file");
+                        return $"Data Source={path}";
+                    }
+                case "memory":
+                default:
+                    return Environment.GetEnvironmentVariable("MAIN_DB_NAME") ?? throw new Exception("MAIN_DB_NAME is not specified in .env file"); ;
+            }
         }
     }
 }
