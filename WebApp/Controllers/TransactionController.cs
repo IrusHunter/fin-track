@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using FinTrack.Models.ViewModels;
+using System.Security.Claims;
 
 namespace WebApp.Controllers
 {
@@ -48,7 +49,7 @@ namespace WebApp.Controllers
         public async Task<IActionResult> Create(Transaction transaction)
         {
             ViewBag.Categories = new SelectList(await _categoryService.FindAll(), "Id", "Name", transaction.CategoryId);
-
+            transaction.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             // if (!ModelState.IsValid)
             //     return View(transaction);
 
