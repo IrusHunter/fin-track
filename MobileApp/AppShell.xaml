@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="MobileApp.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:MobileApp.Views">
+
+    <!-- Головні сторінки застосунку -->
+    <ShellContent
+        Title="Головна"
+        Route="main"
+        ContentTemplate="{DataTemplate views:MainPage}"/>
+
+    <!-- Додаткові сторінки: транзакції, категорії, звіти -->
+    <ShellContent
+        Title="Транзакції"
+        Route="transactions"
+        ContentTemplate="{DataTemplate views:TransactionsPage}"/>
+
+    <ShellContent
+        Title="Категорії"
+        Route="categories"
+        ContentTemplate="{DataTemplate views:CategoriesPage}"/>
+
+    <ShellContent
+        Title="Звіти"
+        Route="reports"
+        ContentTemplate="{DataTemplate views:ReportsPage}"/>
+
+</Shell>

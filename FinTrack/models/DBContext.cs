@@ -51,8 +51,7 @@ namespace FinTrack.Models
                     }
                 case "sqlite":
                     {
-                        var path = Environment.GetEnvironmentVariable("MAIN_DB_NAME") + ".db" ?? throw new Exception("MAIN_DB_NAME is not specified in .env file");
-                        return $"Data Source={path}";
+                        return $"Data Source=fintrack.db";
                     }
                 case "memory":
                 default:
