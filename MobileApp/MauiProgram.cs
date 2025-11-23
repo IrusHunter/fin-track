@@ -7,6 +7,7 @@ using FinTrack.Services;
 using FinTrack.Repositories;
 
 using MobileApp.ViewModels;
+using MobileApp.Views;
 
 namespace MobileApp;
 
@@ -18,7 +19,7 @@ public static class MauiProgram
 
 		builder
 			.UseMauiApp<App>()
-			.UseMauiCommunityToolkit() // Toolkit підключено
+			// .UseMauiCommunityToolkit() // Toolkit підключено
 			.ConfigureFonts(fonts =>
 			{
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -29,8 +30,7 @@ public static class MauiProgram
 		builder.Logging.AddDebug();
 #endif
 
-		var dbProvider = Environment.GetEnvironmentVariable("DB_PROVIDER")
-						 ?? "sqlite"; // ← ставимо дефолт
+		var dbProvider = Environment.GetEnvironmentVariable("DB_PROVIDER") ?? "sqlite";
 
 		switch (dbProvider)
 		{
@@ -52,22 +52,36 @@ public static class MauiProgram
 				break;
 		}
 
-		// Репозиторії
-		builder.Services.AddTransient<TransactionRepository>();
-		builder.Services.AddTransient<CategoryRepository>();
-		builder.Services.AddTransient<ReportRepository>();
+		builder.Services.AddTransient<ITransactionRepository, TransactionRepository>();
+		builder.Services.AddTransient<ICategoryRepository, CategoryRepository>();
 
-		// Сервіси
-		builder.Services.AddTransient<TransactionService>();
-		builder.Services.AddTransient<CategoryService>();
-		builder.Services.AddTransient<ReportService>();
+		builder.Services.AddTransient<ITransactionService, TransactionService>();
+		builder.Services.AddTransient<ICategoryService, CategoryService>();
 
-		// ====================================
-		//   📌 MVVM: ViewModels + Views
-		// ====================================
-		builder.Services.AddTransient<MainViewModel>();
-		builder.Services.AddTransient<MainPage>();
+		builder.Services.AddTransient<TransactionsViewModel>();
+		builder.Services.AddTransient<TransactionsPage>();
 
-		return builder.Build();
+		builder.Services.AddTransient<CategoriesViewModel>();
+		builder.Services.AddTransient<CategoriesPage>();
+
+		builder.Services.AddTransient<DashboardViewModel>();
+		builder.Services.AddTransient<DashboardPage>();
+
+		var app = builder.Build();
+
+		using (var scope = app.Services.CreateScope())
+		{
+			var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+			if (db.Database.IsRelational())
+			{
+				db.Database.Migrate();
+			}
+			else
+			{
+				db.Database.EnsureCreated();
+			}
+		}
+
+		return app;
 	}
 }

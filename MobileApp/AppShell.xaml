@@ -6,12 +6,16 @@
     xmlns:views="clr-namespace:MobileApp.Views">
 
     <!-- Головні сторінки застосунку -->
-    <ShellContent
+    <!-- <ShellContent
         Title="Головна"
         Route="main"
-        ContentTemplate="{DataTemplate views:MainPage}"/>
+        ContentTemplate="{DataTemplate views:MainPage}"/> -->
 
-    <!-- Додаткові сторінки: транзакції, категорії, звіти -->
+    <ShellContent
+        Title="Головна"
+        Route="dashboard"
+        ContentTemplate="{DataTemplate views:DashboardPage}"/>
+
     <ShellContent
         Title="Транзакції"
         Route="transactions"
@@ -22,9 +26,5 @@
         Route="categories"
         ContentTemplate="{DataTemplate views:CategoriesPage}"/>
 
-    <ShellContent
-        Title="Звіти"
-        Route="reports"
-        ContentTemplate="{DataTemplate views:ReportsPage}"/>
 
 </Shell>

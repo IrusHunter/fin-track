@@ -27,7 +27,7 @@ namespace FinTrack.Models
 
         public static string GetConnectionStringFromENV()
         {
-            var dbProvider = Environment.GetEnvironmentVariable("DB_PROVIDER") ?? throw new Exception("DB_PROVIDER is not specified in .env file"); ;
+            var dbProvider = Environment.GetEnvironmentVariable("DB_PROVIDER") ?? "sqlite"; ;
 
             switch (dbProvider.ToLower())
             {
