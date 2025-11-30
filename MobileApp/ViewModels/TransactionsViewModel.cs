@@ -103,7 +103,7 @@ public partial class TransactionsViewModel : ObservableObject
                 CategoryId = SelectedCategory.Id,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                UserId = "default" // Якщо треба, можна додати UserService
+                UserId = "02540265-ebd3-4cfe-9472-6c94a12e5bab"
             };
 
             var created = await _transactionService.Create(tx);
@@ -140,5 +140,20 @@ public partial class TransactionsViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    [RelayCommand]
+    private async Task EditTransaction(Transaction tx)
+    {
+        if (tx == null) return;
+
+        var page = new Views.EditTransactionPage(tx, _transactionService, _categoryService);
+
+        page.Disappearing += async (_, __) =>
+        {
+            await Load(); // автоматичне оновлення
+        };
+
+        await Application.Current.MainPage.Navigation.PushAsync(page);
     }
 }

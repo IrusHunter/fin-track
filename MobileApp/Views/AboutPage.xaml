@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MobileApp.Views.AboutPage"
+             Title="Про застосунок">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20"
+                             Spacing="16">
+
+            <Label Text="Ласкаво просимо до FinTrack!"
+                   FontSize="32"
+                   HorizontalOptions="Center"
+                   FontAttributes="Bold"/>
+
+            <Label Text="Ваш ідеальний фінансовий трекер."
+                   FontSize="20"
+                   HorizontalOptions="Center"
+                   FontAttributes="Bold"/>
+
+            <Label Text="Простий та інтуїтивний застосунок для обліку, контролю доходів і витрат. 
+Уся фінансова звітність під повним контролем — без зайвих зусиль."
+                   FontSize="16"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"
+                   LineBreakMode="WordWrap"/>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

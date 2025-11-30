@@ -5,35 +5,86 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:viewmodels="clr-namespace:MobileApp.ViewModels">
 
-    <VerticalStackLayout Padding="20"
-                         Spacing="10">
+    <Grid RowDefinitions="Auto, *, Auto"
+          Padding="20">
 
-        <Label Text="Категорії"
-               FontSize="28"
-               HorizontalOptions="Center"/>
+        <!-- Верхня частина (форма) -->
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Spacing="10">
 
-        <!-- Список категорій -->
-        <CollectionView ItemsSource="{Binding Categories}">
+                <Label Text="Категорії"
+                       FontSize="28"
+                       HorizontalOptions="Center"/>
+
+                <Frame Padding="15"
+                       BackgroundColor="#f5f5f5"
+                       CornerRadius="12">
+
+                    <VerticalStackLayout Spacing="8">
+
+                        <Entry Placeholder="Назва категорії"
+                               Text="{Binding NewCategoryName}"/>
+
+                        <Entry Placeholder="Податок (%)"
+                               Keyboard="Numeric"
+                               Text="{Binding NewCategoryTaxAmount}"/>
+
+                        <Picker Title="Тип податку"
+                                ItemsSource="{Binding TaxTypes}"
+                                SelectedItem="{Binding NewCategoryTaxType}"/>
+
+                        <Button Text="Додати категорію"
+                                Command="{Binding AddCategoryCommand}"/>
+                    </VerticalStackLayout>
+                </Frame>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- ПРОКРУЧУВАНИЙ СПИСОК -->
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Categories}">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
+
                     <Grid Padding="10"
-                          ColumnDefinitions="*,Auto">
-                        <Label Text="{Binding Name}"
-                               FontSize="18"/>
-                        <Button Text="X"
+                          ColumnDefinitions="*, Auto, Auto"
+                          ColumnSpacing="12">
+
+                        <VerticalStackLayout Grid.Column="0"
+                                             Spacing="3">
+                            <Label Text="{Binding Name}"
+                                   FontSize="18"
+                                   FontAttributes="Bold"/>
+
+                            <Label Text="{Binding TaxAmount, StringFormat='Податок: {0:F2}%'}"
+                                   FontSize="14"
+                                   TextColor="Gray"/>
+
+                            <Label Text="{Binding TaxType}"
+                                   FontSize="14"
+                                   TextColor="Gray"/>
+                        </VerticalStackLayout>
+
+                        <Button Grid.Column="1"
+                                Text="✎"
+                                WidthRequest="40"
+                                HeightRequest="40"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:CategoriesViewModel}}, Path=EditCategoryCommand}"
+                                CommandParameter="{Binding .}"/>
+
+                        <Button Grid.Column="2"
+                                Text="🗑"
+                                TextColor="Red"
+                                WidthRequest="40"
+                                HeightRequest="40"
                                 Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:CategoriesViewModel}}, Path=DeleteCategoryCommand}"
-                                CommandParameter="{Binding Id}"
-                                Grid.Column="1"/>
+                                CommandParameter="{Binding Id}"/>
+
                     </Grid>
+
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- Поле для додавання -->
-        <Entry Placeholder="Нова категорія"
-               Text="{Binding NewCategoryName}"/>
-        <Button Text="Додати"
-                Command="{Binding AddCategoryCommand}"/>
-
-    </VerticalStackLayout>
+    </Grid>
 </ContentPage>

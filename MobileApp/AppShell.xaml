@@ -13,8 +13,8 @@
 
     <ShellContent
         Title="Головна"
-        Route="dashboard"
-        ContentTemplate="{DataTemplate views:DashboardPage}"/>
+        Route="about"
+        ContentTemplate="{DataTemplate views:AboutPage}"/>
 
     <ShellContent
         Title="Транзакції"

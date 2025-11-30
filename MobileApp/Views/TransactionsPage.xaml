@@ -5,25 +5,50 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:viewmodels="clr-namespace:MobileApp.ViewModels">
 
-    <VerticalStackLayout Padding="20"
-                         Spacing="10">
+    <Grid RowDefinitions="Auto, *"
+          Padding="20">
 
-        <Label Text="Транзакції"
-               FontSize="28"
-               HorizontalOptions="Center"/>
+        <!-- Верхня частина -->
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Spacing="10">
 
-        <ActivityIndicator
-            IsRunning="{Binding IsBusy}"
-            IsVisible="{Binding IsBusy}"
-            Color="DodgerBlue"/>
+                <Label Text="Транзакції"
+                       FontSize="28"
+                       HorizontalOptions="Center"/>
 
-        <!-- Список транзакцій -->
-        <CollectionView ItemsSource="{Binding Transactions}">
+                <Button Text="Оновити"
+                        BackgroundColor="#ddd"
+                        Command="{Binding LoadCommand}"/>
+
+                <Entry Placeholder="Назва"
+                       Text="{Binding NewName}"/>
+
+                <Entry Placeholder="Сума"
+                       Keyboard="Numeric"
+                       Text="{Binding NewSum}"/>
+
+                <Picker Title="Категорія"
+                        ItemsSource="{Binding Categories}"
+                        SelectedItem="{Binding SelectedCategory}"
+                        ItemDisplayBinding="{Binding Name}"/>
+
+                <Button Text="Додати"
+                        Command="{Binding AddTransactionCommand}"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Список -->
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Transactions}">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
+
                     <Grid Padding="10"
-                          ColumnDefinitions="*,Auto">
-                        <VerticalStackLayout>
+                          ColumnDefinitions="*, Auto, Auto"
+                          ColumnSpacing="12">
+
+                        <VerticalStackLayout Grid.Column="0">
                             <Label Text="{Binding Name}"
                                    FontSize="16"/>
                             <Label Text="{Binding Sum}"
@@ -35,27 +60,27 @@
                                    TextColor="Gray"/>
                         </VerticalStackLayout>
 
-                        <Button Text="X"
-                                Grid.Column="1"
+                        <!-- Edit -->
+                        <Button Grid.Column="1"
+                                Text="✎"
+                                WidthRequest="36"
+                                HeightRequest="36"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TransactionsViewModel}}, Path=EditTransactionCommand}"
+                                CommandParameter="{Binding .}"/>
+
+                        <!-- Delete -->
+                        <Button Grid.Column="2"
+                                Text="🗑"
+                                TextColor="Red"
+                                WidthRequest="36"
+                                HeightRequest="36"
                                 Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TransactionsViewModel}}, Path=DeleteTransactionCommand}"
                                 CommandParameter="{Binding Id}"/>
                     </Grid>
+
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <Entry Placeholder="Назва"
-               Text="{Binding NewName}"/>
-        <Entry Placeholder="Сума"
-               Text="{Binding NewSum}"
-               Keyboard="Numeric"/>
-
-        <Picker Title="Категорія"
-                ItemsSource="{Binding Categories}"
-                SelectedItem="{Binding SelectedCategory}"
-                ItemDisplayBinding="{Binding Name}"/>
-
-        <Button Text="Додати транзакцію"
-                Command="{Binding AddTransactionCommand}"/>
-    </VerticalStackLayout>
+    </Grid>
 </ContentPage>

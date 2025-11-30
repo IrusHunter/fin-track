@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using FinTrack.Services;
 using FinTrack.Models;
 using System.Collections.ObjectModel;
-using System.ComponentModel.DataAnnotations;
 
 namespace MobileApp.ViewModels;
 
@@ -17,25 +16,34 @@ public partial class CategoriesViewModel : ObservableObject
 
         Categories = new ObservableCollection<Category>();
 
-        // Асинхронне завантаження категорій при створенні ViewModel
+        TaxTypes = Enum.GetValues(typeof(TaxType)).Cast<TaxType>().ToList();
+
         LoadCategoriesCommand.Execute(null);
     }
 
-    // Колекція категорій для UI
+    // Колекція категорій
     [ObservableProperty]
     private ObservableCollection<Category> categories;
 
-    // Нове ім'я категорії
+    // Нові поля
     [ObservableProperty]
     private string newCategoryName = "";
 
-    // Індикатор завантаження
+    [ObservableProperty]
+    private string newCategoryTaxAmount = "0";
+
+    [ObservableProperty]
+    private TaxType newCategoryTaxType = TaxType.GeneralTax;
+
+    public List<TaxType> TaxTypes { get; }
+
+    // Індикатор виконання
     [ObservableProperty]
     private bool isBusy;
 
-    // ==========================
-    //   Завантаження категорій
-    // ==========================
+    // -----------------------------
+    //     Завантаження
+    // -----------------------------
 
     [RelayCommand]
     private async Task LoadCategories()
@@ -47,8 +55,8 @@ public partial class CategoriesViewModel : ObservableObject
             IsBusy = true;
 
             Categories.Clear();
-            var items = await _categoryService.FindAll();
 
+            var items = await _categoryService.FindAll();
             foreach (var item in items)
                 Categories.Add(item);
         }
@@ -58,9 +66,9 @@ public partial class CategoriesViewModel : ObservableObject
         }
     }
 
-    // ==========================
-    //       Додавання
-    // ==========================
+    // -----------------------------
+    //         Додавання
+    // -----------------------------
 
     [RelayCommand]
     private async Task AddCategory()
@@ -68,25 +76,27 @@ public partial class CategoriesViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(NewCategoryName))
             return;
 
+        if (!decimal.TryParse(NewCategoryTaxAmount, out var tax))
+            return;
+
         try
         {
             IsBusy = true;
 
-            var newCategory = new Category
+            var category = new Category
             {
                 Name = NewCategoryName,
-                TaxAmount = 0 // якщо треба, можна додати поле у UI
+                TaxAmount = Math.Clamp(tax, Category.MinTaxAmount, Category.MaxTaxAmount),
+                TaxType = NewCategoryTaxType
             };
 
-            var created = await _categoryService.Create(newCategory);
+            var created = await _categoryService.Create(category);
 
             Categories.Add(created);
+
             NewCategoryName = "";
-        }
-        catch (Exception ex)
-        {
-            // TODO: можна показувати повідомлення через AlertService
-            Console.WriteLine(ex.Message);
+            NewCategoryTaxAmount = "0";
+            NewCategoryTaxType = TaxType.GeneralTax;
         }
         finally
         {
@@ -94,9 +104,9 @@ public partial class CategoriesViewModel : ObservableObject
         }
     }
 
-    // ==========================
-    //        Видалення
-    // ==========================
+    // -----------------------------
+    //          Видалення
+    // -----------------------------
 
     [RelayCommand]
     private async Task DeleteCategory(int categoryId)
@@ -112,13 +122,15 @@ public partial class CategoriesViewModel : ObservableObject
 
             Categories.Remove(category);
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
         finally
         {
             IsBusy = false;
         }
+    }
+
+    [RelayCommand]
+    private async Task EditCategory(Category category)
+    {
+        await Application.Current.MainPage.Navigation.PushAsync(new Views.EditCategoryPage(category, _categoryService));
     }
 }
