@@ -30,7 +30,7 @@
                             <a class="nav-link text-light" asp-area="" asp-controller="Transaction"
                                 asp-action="Index">Transactions</a>
                         </li>
-                        <li class="nax-item">
+                        <li class="nav-item">
                             <a class="nav-link text-light" asp-area="" asp-controller="Account"
                                 asp-action="Profile">Profile</a>
                         </li>
@@ -47,9 +47,16 @@
 
     @* <footer class="border-top footer text-muted">
     </footer> *@
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- 🔹 React + ReactDOM + Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 

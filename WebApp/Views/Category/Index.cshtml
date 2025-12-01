@@ -52,3 +52,87 @@
         <div class="alert alert-info">No categories found.</div>
     }
 </div>
+@* 
+<!-- 🔽 НОВА ЧАСТИНА: React-віджет -->
+<div class="item-container mt-5">
+    <h2 class="mb-3">Categories (React widget)</h2>
+    <div id="category-react-root"></div>
+</div>
+
+@section Scripts {
+    <!-- React з CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useEffect, useState } = React;
+
+        function CategoryReactWidget() {
+            const [categories, setCategories] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                fetch("/api/v1.0/CategoryApi")
+                    .then(resp => {
+                        if (!resp.ok) {
+                            throw new Error("HTTP " + resp.status);
+                        }
+                        return resp.json();
+                    })
+                    .then(data => {
+                        setCategories(data || []);
+                        setLoading(false);
+                    })
+                    .catch(err => {
+                        setError(err.message);
+                        setLoading(false);
+                    });
+            }, []);
+
+            if (loading) {
+                return <p>Loading categories from API...</p>;
+            }
+
+            if (error) {
+                return <p className="text-danger">Error: {error}</p>;
+            }
+
+            if (!categories.length) {
+                return <div className="alert alert-info">No categories returned by API.</div>;
+            }
+
+            return (
+                <table className="table table-bordered table-striped align-middle">
+                    <thead className="table-primary">
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Tax Amount (%)</th>
+                            <th>Tax Type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {categories.map(c => (
+                            <tr key={c.id}>
+                                <td>{c.id}</td>
+                                <td>{c.name}</td>
+                                <td>{c.taxAmount}</td>
+                                <td>{c.taxType}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            );
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const rootElement = document.getElementById("category-react-root");
+            if (rootElement) {
+                const root = ReactDOM.createRoot(rootElement);
+                root.render(<CategoryReactWidget />);
+            }
+        });
+    </script>
+} *@

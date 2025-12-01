@@ -1,4 +1,7 @@
 @model FinTrack.Models.ViewModels.TransactionSearchViewModel
+@using System.Text.Json
+@using System.Linq
+
 @{
     ViewData["Title"] = "Transactions";
 }
@@ -11,47 +14,39 @@
 
     <partial name="_SearchPartial" model="Model" />
 
-    @if (Model.Transactions == null || !Model.Transactions.Any())
-    {
-        <div class="alert alert-info">Не знайдено жодної транзакції.</div>
-    }
-    else
-    {
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Назва</th>
-                    <th>Сума</th>
-                    <th>Сума після податку</th>
-                    <th>Категорія</th>
-                    <th>Користувач</th>
-                    <th>Створено</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var t in Model.Transactions)
-                {
-                    <tr>
-                        <td>@t.Id</td>
-                        <td>@t.Name</td>
-                        <td>@t.Sum</td>
-                        <td>@t.SumAfterTax</td>
-                        <td>@t.Category?.Name</td>
-                        <td>@t.User?.UserName</td>
-                        <td>@t.CreatedAt.ToLocalTime()</td>
-                        <td>
-                            <a asp-action="Update" asp-route-id="@t.Id" class="btn btn-warning btn-sm">✏️ Редагувати</a>
-                            <form asp-action="Delete" asp-route-id="@t.Id" method="post" style="display:inline;">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-danger btn-sm"
-                                    onclick="return confirm('Видалити цю транзакцію?')">🗑️ Видалити</button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
+    <form id="anti-forgery-form" method="post" style="display:none;">
+        @Html.AntiForgeryToken()
+    </form>
+
+    <div id="transactions-react-widget" class="mb-4"></div>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <!-- Передаємо транзакції з Razor у JS як window.transactionsData -->
+    <script>
+        window.transactionsData = @Html.Raw(
+            JsonSerializer.Serialize(
+                (Model.Transactions ?? Enumerable.Empty<FinTrack.Models.Transaction>())
+                    .Select(t => new {
+                        id = t.Id,
+                        name = t.Name,
+                        sum = t.Sum,
+                        sumAfterTax = t.SumAfterTax,
+                        category = t.Category != null ? t.Category.Name : null,
+                        user = t.User != null ? t.User.UserName : null,
+                        createdAt = t.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd")
+                    })
+            )
+        );
+    </script>
+
+    <!-- React-віджет (Babel пресет тільки react) -->
+    <script type="text/babel"
+            data-presets="react"
+            src="~/js/transactions-widget.jsx"
+            asp-append-version="true"></script>
+}
