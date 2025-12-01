@@ -11,12 +11,12 @@ Env.TraversePath().Load();
 var connStr = ApplicationDbContext.GetConnectionStringFromENV();
 
 var services = new ServiceCollection();
-services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connStr));
+services.AddDbContext<ApplicationDbContext>(options => options.UseInMemoryDatabase("fintrack"));
 
 var provider = services.BuildServiceProvider();
 
 using var db = provider.GetRequiredService<ApplicationDbContext>();
-db.Database.Migrate();
+db.Database.EnsureCreated();
 
 var categoryRepository = new CategoryRepository(db);
 var categoryService = new CategoryService(categoryRepository);

@@ -694,3 +694,4 @@ fabric.properties
 FinTrackDB*
 
 .sonarqube/
+fintrack.db*

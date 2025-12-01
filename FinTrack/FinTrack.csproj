@@ -1,14 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>FinTrack</PackageId>
     <Version>1.0.1</Version>
-    <PackAsTool>true</PackAsTool>
-    <ToolCommandName>fintrack</ToolCommandName>
   </PropertyGroup>
 
   <ItemGroup>
